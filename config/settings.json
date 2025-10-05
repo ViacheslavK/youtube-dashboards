@@ -1,0 +1,10 @@
+{
+  "sync_interval_minutes": 30,
+  "web_server_port": 8080,
+  "max_videos_per_channel": 5,
+  "database_path": "database/videos.db",
+  "credentials_file": "config/client_secrets.json",
+  "auto_start_web_server": true,
+  "open_browser_on_start": true,
+  "log_level": "INFO"
+}
