@@ -5,8 +5,14 @@
 
 import os
 import sys
-from db_manager import Database
-from youtube_api import YouTubeAPI, setup_new_channel
+
+# Добавляем корневую папку проекта в путь
+current_dir = os.path.dirname(os.path.abspath(__file__))  # src/
+project_root = os.path.dirname(current_dir)  # корень проекта
+sys.path.insert(0, project_root)
+
+from src.db_manager import Database
+from src.youtube_api import YouTubeAPI, setup_new_channel
 
 
 COLORS = [

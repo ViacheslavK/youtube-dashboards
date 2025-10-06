@@ -192,19 +192,120 @@ class Database:
         conn.close()
         return subscription_id
     
-    def get_subscriptions_by_channel(self, personal_channel_id: int) -> List[Dict]:
+    def get_subscriptions_by_channel(self, personal_channel_id: int, 
+                                     include_inactive: bool = False) -> List[Dict]:
         """Получение подписок для личного канала"""
         conn = self.get_connection()
         cursor = conn.cursor()
         
-        cursor.execute('''
+        query = '''
             SELECT * FROM subscriptions 
-            WHERE personal_channel_id = ?
-        ''', (personal_channel_id,))
+            WHERE personal_channel_id = ? AND deleted_by_user = 0
+        '''
+        
+        if not include_inactive:
+            query += ' AND is_active = 1'
+        
+        cursor.execute(query, (personal_channel_id,))
         
         subscriptions = [dict(row) for row in cursor.fetchall()]
         conn.close()
         return subscriptions
+    
+    def deactivate_subscription(self, subscription_id: int):
+        """Деактивировать подписку и удалить её видео"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        # Деактивируем подписку
+        cursor.execute('''
+            UPDATE subscriptions 
+            SET is_active = 0, deactivated_at = ? 
+            WHERE id = ?
+        ''', (datetime.now().isoformat(), subscription_id))
+        
+        # Удаляем все видео этой подписки
+        cursor.execute('''
+            DELETE FROM videos 
+            WHERE subscription_id = ?
+        ''', (subscription_id,))
+        
+        conn.commit()
+        conn.close()
+    
+    def reactivate_subscription(self, subscription_id: int):
+        """Реактивировать подписку"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            UPDATE subscriptions 
+            SET is_active = 1, deactivated_at = NULL 
+            WHERE id = ?
+        ''', (subscription_id,))
+        
+        conn.commit()
+        conn.close()
+    
+    def mark_subscription_deleted(self, subscription_id: int):
+        """Пометить подписку как удалённую пользователем (для истории)"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            UPDATE subscriptions 
+            SET deleted_by_user = 1 
+            WHERE id = ?
+        ''', (subscription_id,))
+        
+        conn.commit()
+        conn.close()
+    
+    def sync_subscriptions_status(self, personal_channel_id: int, 
+                                  current_youtube_ids: List[str]) -> Dict:
+        """
+        Синхронизация статуса подписок с YouTube
+        
+        Args:
+            personal_channel_id: ID личного канала
+            current_youtube_ids: Список актуальных YouTube channel IDs из API
+            
+        Returns:
+            Статистика: {'activated': int, 'deactivated': int, 'unchanged': int}
+        """
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        
+        stats = {'activated': 0, 'deactivated': 0, 'unchanged': 0}
+        
+        # Получаем текущие подписки из БД
+        cursor.execute('''
+            SELECT id, youtube_channel_id, is_active 
+            FROM subscriptions 
+            WHERE personal_channel_id = ? AND deleted_by_user = 0
+        ''', (personal_channel_id,))
+        
+        db_subscriptions = {row['youtube_channel_id']: row for row in cursor.fetchall()}
+        
+        # Проверяем каждую подписку из БД
+        for yt_id, sub in db_subscriptions.items():
+            if yt_id in current_youtube_ids:
+                # Подписка активна на YouTube
+                if not sub['is_active']:
+                    # Реактивируем
+                    self.reactivate_subscription(sub['id'])
+                    stats['activated'] += 1
+                else:
+                    stats['unchanged'] += 1
+            else:
+                # Подписка пропала из YouTube
+                if sub['is_active']:
+                    # Деактивируем
+                    self.deactivate_subscription(sub['id'])
+                    stats['deactivated'] += 1
+        
+        conn.close()
+        return stats
     
     # === Videos ===
     
@@ -236,7 +337,7 @@ class Database:
     
     def get_videos_by_personal_channel(self, personal_channel_id: int, 
                                        include_watched: bool = True) -> List[Dict]:
-        """Получение всех видео для личного канала"""
+        """Получение всех видео для личного канала (только с активных подписок)"""
         conn = self.get_connection()
         cursor = conn.cursor()
         
@@ -245,7 +346,9 @@ class Database:
                    s.youtube_channel_id as subscription_youtube_id
             FROM videos v
             JOIN subscriptions s ON v.subscription_id = s.id
-            WHERE s.personal_channel_id = ?
+            WHERE s.personal_channel_id = ? 
+              AND s.is_active = 1 
+              AND s.deleted_by_user = 0
         '''
         
         if not include_watched:

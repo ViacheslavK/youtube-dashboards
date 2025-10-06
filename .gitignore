@@ -1,6 +1,6 @@
 # YouTube Dashboard - Git Ignore
 
-# OAuth Credentials (ВАЖНО!)
+# OAuth Credentials
 config/client_secrets.json
 config/youtube_credentials/
 *.pickle

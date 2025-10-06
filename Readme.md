@@ -6,16 +6,32 @@
 
 ```
 youtube-dashboard/
+├── src/                          # Основной код
+│   ├── __init__.py
+│   ├── db_manager.py            # Работа с БД
+│   ├── youtube_api.py           # YouTube API интеграция
+│   ├── setup_channels.py        # Настройка каналов
+│   └── sync_subscriptions.py    # Синхронизация
+├── utils/                       # Административные утилиты
+│   ├── __init__.py
+│   ├── manage_subscriptions.py  # Управление подписками
+│   ├── view_errors.py           # Просмотр ошибок
+│   └── view_stats.py            # Статистика
+├── migrations/                  # Миграции БД
+│   ├── __init__.py
+│   ├── migration_manager.py
+│   ├── 001_initial_schema.py
+│   ├── 002_add_subscription_status.py
+│   └── 003_add_sync_errors.py
 ├── config/
-│   ├── client_secrets.json       # OAuth credentials (создать вручную)
-│   └── youtube_credentials/      # Токены для каждого канала (создаются автоматически)
+│   ├── client_secrets.json      # OAuth credentials (создать вручную)
+│   ├── settings.json            # Настройки
+│   └── youtube_credentials/     # Токены (создаются автоматически)
 ├── database/
-│   └── videos.db                 # SQLite база данных
-├── src/
-│   ├── database.py               # Работа с БД
-│   ├── youtube_api.py            # YouTube API интеграция
-│   ├── setup_channels.py         # Первоначальная настройка
-│   └── sync_subscriptions.py     # Синхронизация видео
+│   └── videos.db                # SQLite база данных
+├── frontend/                    # Веб-интерфейс (в разработке)
+├── test_setup.py                # Проверка установки
+├── migrate.py                   # Управление миграциями
 ├── requirements.txt
 └── README.md
 ```

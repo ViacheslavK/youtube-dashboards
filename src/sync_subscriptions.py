@@ -4,9 +4,16 @@
 """
 
 import sys
+import os
 from datetime import datetime
-from db_manager import Database
-from youtube_api import YouTubeAPI
+
+# Добавляем корневую папку проекта в путь
+current_dir = os.path.dirname(os.path.abspath(__file__))  # src/
+project_root = os.path.dirname(current_dir)  # корень проекта
+sys.path.insert(0, project_root)
+
+from src.db_manager import Database
+from src.youtube_api import YouTubeAPI
 
 
 def sync_subscriptions(db: Database):

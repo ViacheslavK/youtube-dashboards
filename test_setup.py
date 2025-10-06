@@ -3,7 +3,9 @@
 Скрипт для проверки установки и настройки
 """
 
-from src.db_manager import Database
+import os
+import sys
+
 
 def check_dependencies():
     """Проверка установленных зависимостей"""
@@ -82,7 +84,7 @@ def check_database():
     print("Проверка базы данных...")
     
     try:
-        from database import Database
+        from src.db_manager import Database
         db = Database()
         
         channels = db.get_all_personal_channels()

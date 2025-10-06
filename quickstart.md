@@ -44,7 +44,7 @@ python test_setup.py
 ## 4. Настройка каналов
 
 ```bash
-python setup_channels.py
+python src/setup_channels.py
 ```
 
 Для каждого канала:
@@ -59,7 +59,7 @@ python setup_channels.py
 ## 5. Загрузка видео
 
 ```bash
-python sync_subscriptions.py
+python src/sync_subscriptions.py
 ```
 
 Выберите опцию **3** для полной синхронизации (при первом запуске).
@@ -79,8 +79,16 @@ python sync_subscriptions.py
 
 ### Следующие шаги:
 
-- Запустить веб-интерфейс (в разработке)
-- Настроить автоматическую синхронизацию (в разработке)
+```bash
+# Просмотр статистики
+python utils/view_stats.py
+
+# Просмотр ошибок (если были)
+python utils/view_errors.py
+
+# Управление подписками
+python utils/manage_subscriptions.py
+```
 
 ---
 
