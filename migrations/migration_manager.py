@@ -123,7 +123,7 @@ class MigrationManager:
                 ''', (version, migration_name))
                 
                 conn.commit()
-                print(f"✓ Миграция {version} успешно применена")
+                print(f"[OK] Migration {version} successfully applied")
                 return True
                 
             except Exception as e:

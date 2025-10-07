@@ -23,11 +23,11 @@ def upgrade(cursor):
             FOREIGN KEY (subscription_id) REFERENCES subscriptions(id)
         )
     ''')
-    print("  ✓ Создана таблица: sync_errors")
+    print("  [OK] Created table: sync_errors")
     
     # Создаём индекс
     cursor.execute('''
         CREATE INDEX IF NOT EXISTS idx_sync_errors_unresolved 
         ON sync_errors(resolved, occurred_at DESC)
     ''')
-    print("  ✓ Создан индекс: idx_sync_errors_unresolved")
+    print("  [OK] Created index: idx_sync_errors_unresolved")

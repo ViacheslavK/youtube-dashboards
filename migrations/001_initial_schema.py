@@ -67,5 +67,5 @@ def upgrade(cursor):
         ON videos(subscription_id, published_at DESC)
     ''')
     
-    print("  ✓ Созданы таблицы: personal_channels, subscriptions, videos")
-    print("  ✓ Созданы индексы для оптимизации запросов")
+    print("  [OK] Created tables: personal_channels, subscriptions, videos")
+    print("  [OK] Created indexes for query optimization")
