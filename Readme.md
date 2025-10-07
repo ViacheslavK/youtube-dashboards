@@ -1,10 +1,11 @@
-# YouTube Dashboard
-
-Приложение для отслеживания видео с нескольких личных YouTube каналов в едином интерфейсе.
 
 ![Tests](https://github.com/ViacheslavK/youtube-dashboards/actions/workflows/test.yml/badge.svg)
 ![Release](https://github.com/ViacheslavK/youtube-dashboards/actions/workflows/release.yml/badge.svg)
 [![codecov](https://codecov.io/gh/ViacheslavK/youtube-dashboards/branch/main/graph/badge.svg)](https://codecov.io/gh/ViacheslavK/youtube-dashboards)
+
+# YouTube Dashboard
+
+Приложение для отслеживания видео с нескольких личных YouTube каналов в едином интерфейсе.
 
 ## Структура проекта
 
