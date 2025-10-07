@@ -86,6 +86,11 @@ def main():
         type=int, 
         help='Целевая версия (по умолчанию - последняя)'
     )
+    migrate_parser.add_argument(
+        '--yes', '-y',
+        action='store_true',
+        help='Автоматически подтвердить (для CI/CD)'
+    )
     
     # status
     subparsers.add_parser('status', help='Показать статус миграций')
@@ -104,7 +109,7 @@ def main():
     manager = MigrationManager()
     
     if args.command == 'up':
-        migrate_up(manager, args.target)
+        migrate_up(manager, args.target, args.yes)
     elif args.command == 'status':
         show_status(manager)
     elif args.command == 'create':
