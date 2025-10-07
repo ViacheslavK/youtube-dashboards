@@ -1,6 +1,6 @@
 # YouTube Dashboard - Git Ignore
 
-# OAuth Credentials
+# OAuth Credentials (ВАЖНО!)
 config/client_secrets.json
 config/youtube_credentials/
 *.pickle
@@ -13,6 +13,12 @@ database/
 # Logs
 logs/
 *.log
+
+# Tests and Coverage
+.coverage
+htmlcov/
+.pytest_cache/
+coverage.xml
 
 # Python
 __pycache__/
@@ -68,3 +74,8 @@ Desktop.ini
 *.bak
 *.backup
 *.old
+
+# GitHub artifacts
+youtube-dashboard/
+*.zip
+*.tar.gz
