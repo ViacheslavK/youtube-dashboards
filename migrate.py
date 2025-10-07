@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from migrations.migration_manager import MigrationManager, create_migration_template
 
 
-def migrate_up(manager: MigrationManager, target_version: int = None):
+def migrate_up(manager: MigrationManager, target_version: int = None, auto_yes: bool = False):
     """Применить миграции"""
     print("\n" + "=" * 60)
     print("Применение миграций")
@@ -35,12 +35,15 @@ def migrate_up(manager: MigrationManager, target_version: int = None):
         migration_name = filename.replace('.py', '').replace(f'{version:03d}_', '')
         print(f"  [{version}] {migration_name}")
     
-    print()
-    confirm = input("Продолжить? (yes/no): ").strip().lower()
-    
-    if confirm != 'yes':
-        print("❌ Отменено")
-        return
+    if not auto_yes:
+        print()
+        confirm = input("Продолжить? (yes/no): ").strip().lower()
+        
+        if confirm != 'yes':
+            print("❌ Отменено")
+            return
+    else:
+        print("\n[Автоматическое подтверждение включено]")
     
     success, total = manager.migrate(target_version)
     

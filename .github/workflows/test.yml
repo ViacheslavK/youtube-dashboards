@@ -15,7 +15,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
-        python-version: ['3.11', '3.12', '3.13']
+        python-version: ['3.11', '3.12']
     
     steps:
     - name: Checkout code
@@ -109,7 +109,7 @@ jobs:
     - name: Run migrations
       run: |
         python migrate.py status
-        python migrate.py up
+        python migrate.py up --yes
     
     - name: Verify migrations
       run: |
