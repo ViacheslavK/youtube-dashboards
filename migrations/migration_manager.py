@@ -14,6 +14,8 @@ class MigrationManager:
     
     def __init__(self, db_path: str = "database/videos.db"):
         self.db_path = db_path
+        # Создаём папку для БД, если её нет
+        os.makedirs(os.path.dirname(db_path), exist_ok=True)
         self.migrations_dir = os.path.join(
             os.path.dirname(os.path.abspath(__file__))
         )
@@ -292,6 +294,6 @@ def downgrade(cursor):
     with open(filepath, 'w', encoding='utf-8') as f:
         f.write(template)
     
-    print(f"✓ Создана миграция: {filename}")
-    print(f"  Путь: {filepath}")
-    print("\nОтредактируйте файл и добавьте необходимые изменения в функцию upgrade()")
+    print(f"[OK] Created migration: {filename}")
+    print(f"  Path: {filepath}")
+    print("\nEdit the file and add necessary changes to the upgrade() function")
