@@ -1,0 +1,147 @@
+{
+  "app": {
+    "name": "YouTube Dashboard",
+    "version": "1.0.0"
+  },
+  
+  "common": {
+    "yes": "Yes",
+    "no": "No",
+    "ok": "OK",
+    "cancel": "Cancel",
+    "close": "Close",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "warning": "Warning"
+  },
+  
+  "setup": {
+    "title": "Personal Channels Setup",
+    "welcome": "Welcome to YouTube Dashboard!",
+    "channels_count": "How many personal channels do you want to add?",
+    "channel_name": "Channel name (e.g., 'Technology', 'Music')",
+    "auth_opening": "Browser will open for authorization...",
+    "auth_success": "Authorization successful!",
+    "auth_error": "Error setting up channel: {error}",
+    "channel_added": "Channel '{name}' added (ID: {id})",
+    "all_done": "All channels successfully configured!",
+    "next_step": "Now you can load subscriptions. Run:",
+    "no_channels": "No channels were added."
+  },
+  
+  "sync": {
+    "title": "Sync Subscriptions and Videos",
+    "channels_found": "Found {count} personal channels",
+    "loading_subscriptions": "Loading subscriptions from YouTube...",
+    "subscriptions_found": "Found {count} subscriptions on YouTube",
+    "checking_status": "Checking subscription status...",
+    "deactivated": "Deactivated: {count} (unsubscribed)",
+    "activated": "Reactivated: {count} (resubscribed)",
+    "unchanged": "Unchanged: {count}",
+    "new_subscriptions": "New subscriptions added: {count}",
+    "processing_subscriptions": "Processing {count} subscriptions...",
+    "progress": "Processed {current}/{total} subscriptions...",
+    "new_videos_found": "Found {count} new videos for '{channel}'",
+    "sync_complete": "Synchronization complete!",
+    "total_new_videos": "Total new videos: {count}",
+    "errors_found": "Found {count} errors during synchronization:",
+    "error_details": "Details available in admin panel"
+  },
+  
+  "channels": {
+    "title": "Personal Channels",
+    "count": "Channels: {count}",
+    "name": "Name",
+    "youtube_id": "YouTube ID",
+    "subscriptions": "Subscriptions",
+    "videos": "Videos",
+    "unwatched": "Unwatched",
+    "no_channels": "No configured channels",
+    "setup_prompt": "Run: python src/setup_channels.py"
+  },
+  
+  "subscriptions": {
+    "title": "Subscriptions",
+    "active": "Active",
+    "inactive": "Inactive",
+    "deleted": "Deleted",
+    "count": "Subscriptions: {count}",
+    "view_inactive": "View inactive subscriptions",
+    "no_inactive": "No inactive subscriptions!",
+    "deactivated_since": "since {date}",
+    "delete_from_history": "Delete from history",
+    "deleted_count": "Deleted from history: {count} subscriptions"
+  },
+  
+  "videos": {
+    "title": "Videos",
+    "watched": "Watched",
+    "unwatched": "Unwatched",
+    "count": "Videos: {count}",
+    "duration": "Duration",
+    "published": "Published",
+    "views": "Views",
+    "open": "Open",
+    "mark_watched": "Mark as watched",
+    "clear_watched": "Clear watched",
+    "no_videos": "No videos",
+    "recent_videos": "Recent {count} videos"
+  },
+  
+  "errors": {
+    "title": "Sync Errors",
+    "unresolved": "Unresolved errors: {count}",
+    "no_errors": "No unresolved sync errors!",
+    "occurred_at": "When: {date}",
+    "channel": "Channel: {name}",
+    "message": "Message: {msg}",
+    "types": {
+      "PLAYLIST_NOT_FOUND": "Playlist not found",
+      "DURATION_PARSE_ERROR": "Duration parsing error",
+      "QUOTA_EXCEEDED": "API quota exceeded",
+      "UNKNOWN": "Unknown error"
+    },
+    "explanations": {
+      "PLAYLIST_NOT_FOUND": "Channel has no public playlist. Possibly a Topic channel or deleted channel.",
+      "DURATION_PARSE_ERROR": "Error parsing video duration. Usually a livestream.",
+      "QUOTA_EXCEEDED": "Daily YouTube API quota exceeded (10,000 units). Wait until next day.",
+      "UNKNOWN": "Unknown error. Check details."
+    }
+  },
+  
+  "migrations": {
+    "title": "Database Migrations",
+    "current_version": "Current schema version: {version}",
+    "available": "Available migrations: {count}",
+    "pending": "Pending: {count}",
+    "pending_list": "Unapplied migrations:",
+    "applied_list": "Applied migrations:",
+    "will_apply": "Will apply {count} migrations",
+    "confirm": "Continue? (yes/no):",
+    "cancelled": "Cancelled",
+    "success": "Successfully applied {count} migrations",
+    "partial": "Applied {success} of {total} migrations",
+    "check_errors": "Check errors above",
+    "up_to_date": "Database is up to date, no migrations needed",
+    "auto_confirm": "[Auto-confirm enabled]"
+  },
+  
+  "stats": {
+    "title": "Statistics",
+    "total_channels": "Total personal channels: {count}",
+    "total_subscriptions": "Subscriptions: {count}",
+    "total_videos": "Videos: {count}",
+    "unwatched_videos": "Unwatched: {count}"
+  },
+  
+  "menu": {
+    "choose_action": "Choose an action:",
+    "exit": "Exit",
+    "your_choice": "Your choice ({min}-{max}):",
+    "invalid_choice": "Invalid choice"
+  }
+}

@@ -15,6 +15,10 @@ project_root = os.path.dirname(current_dir)  # корень проекта
 sys.path.insert(0, project_root)
 
 from src.db_manager import Database
+from locales import t, load_locale_from_config
+
+# Загружаем локаль из настроек
+load_locale_from_config()
 
 
 def view_channels_stats():
@@ -27,8 +31,8 @@ def view_channels_stats():
     print('=' * 80)
     
     if not channels:
-        print("\n⚠️  Нет настроенных каналов")
-        print("Запустите: python src/setup_channels.py")
+        print(f"\n⚠️  {t('channels.no_channels')}")
+        print(t('channels.setup_prompt'))
         return
     
     total_videos = 0
@@ -54,10 +58,10 @@ def view_channels_stats():
         total_unwatched += len(unwatched)
     
     print(f"\n{'=' * 80}")
-    print(f"ИТОГО:")
-    print(f"   Подписок: {total_subscriptions}")
-    print(f"   Видео: {total_videos}")
-    print(f"   Не просмотрено: {total_unwatched}")
+    print(t('stats.title').upper())
+    print(f"   {t('stats.total_subscriptions', count=total_subscriptions)}")
+    print(f"   {t('stats.total_videos', count=total_videos)}")
+    print(f"   {t('stats.unwatched_videos', count=total_unwatched)}")
     print('=' * 80)
 
 
@@ -114,17 +118,17 @@ def view_subscriptions():
 
 def main():
     print("=" * 80)
-    print("YouTube Dashboard - Статистика")
+    print(t('stats.title'))
     print("=" * 80)
     
-    print("\nВыберите действие:")
-    print("1. Статистика по каналам")
-    print("2. Последние 20 видео")
-    print("3. Последние 50 видео")
-    print("4. Список подписок")
-    print("5. Выход")
+    print(f"\n{t('menu.choose_action')}")
+    print(f"1. {t('stats.title')} - по каналам")
+    print(f"2. {t('videos.recent_videos', count=20)}")
+    print(f"3. {t('videos.recent_videos', count=50)}")
+    print(f"4. {t('subscriptions.title')} - список")
+    print(f"5. {t('menu.exit')}")
     
-    choice = input("\nВаш выбор (1-5): ").strip()
+    choice = input(f"\n{t('menu.your_choice', min=1, max=5)} ").strip()
     
     if choice == '1':
         view_channels_stats()

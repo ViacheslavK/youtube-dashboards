@@ -1,0 +1,147 @@
+{
+  "app": {
+    "name": "YouTube Dashboard",
+    "version": "1.0.0"
+  },
+  
+  "common": {
+    "yes": "Да",
+    "no": "Нет",
+    "ok": "ОК",
+    "cancel": "Отмена",
+    "close": "Закрыть",
+    "save": "Сохранить",
+    "delete": "Удалить",
+    "edit": "Редактировать",
+    "loading": "Загрузка...",
+    "error": "Ошибка",
+    "success": "Успешно",
+    "warning": "Предупреждение"
+  },
+  
+  "setup": {
+    "title": "Настройка личных каналов",
+    "welcome": "Добро пожаловать в YouTube Dashboard!",
+    "channels_count": "Сколько личных каналов вы хотите добавить?",
+    "channel_name": "Название канала (например, 'Технологии', 'Музыка')",
+    "auth_opening": "Откроется браузер для авторизации...",
+    "auth_success": "Авторизация успешна!",
+    "auth_error": "Ошибка при настройке канала: {error}",
+    "channel_added": "Канал '{name}' добавлен (ID: {id})",
+    "all_done": "Все каналы успешно настроены!",
+    "next_step": "Теперь можно загрузить подписки. Запустите:",
+    "no_channels": "Ни один канал не был добавлен."
+  },
+  
+  "sync": {
+    "title": "Синхронизация подписок и видео",
+    "channels_found": "Найдено {count} личных каналов",
+    "loading_subscriptions": "Загрузка подписок с YouTube...",
+    "subscriptions_found": "Найдено {count} подписок на YouTube",
+    "checking_status": "Проверка статуса подписок...",
+    "deactivated": "Деактивировано: {count} (отписались)",
+    "activated": "Реактивировано: {count} (переподписались)",
+    "unchanged": "Без изменений: {count}",
+    "new_subscriptions": "Добавлено новых подписок: {count}",
+    "processing_subscriptions": "Обработка {count} подписок...",
+    "progress": "Обработано {current}/{total} подписок...",
+    "new_videos_found": "Найдено {count} новых видео для '{channel}'",
+    "sync_complete": "Синхронизация завершена!",
+    "total_new_videos": "Всего новых видео: {count}",
+    "errors_found": "Обнаружено {count} ошибок при синхронизации:",
+    "error_details": "Подробности можно посмотреть в админ-панели"
+  },
+  
+  "channels": {
+    "title": "Личные каналы",
+    "count": "Каналов: {count}",
+    "name": "Название",
+    "youtube_id": "YouTube ID",
+    "subscriptions": "Подписок",
+    "videos": "Видео",
+    "unwatched": "Не просмотрено",
+    "no_channels": "Нет настроенных каналов",
+    "setup_prompt": "Запустите: python src/setup_channels.py"
+  },
+  
+  "subscriptions": {
+    "title": "Подписки",
+    "active": "Активные",
+    "inactive": "Неактивные",
+    "deleted": "Удалённые",
+    "count": "Подписок: {count}",
+    "view_inactive": "Просмотр неактивных подписок",
+    "no_inactive": "Нет неактивных подписок!",
+    "deactivated_since": "с {date}",
+    "delete_from_history": "Удалить из истории",
+    "deleted_count": "Удалено из истории: {count} подписок"
+  },
+  
+  "videos": {
+    "title": "Видео",
+    "watched": "Просмотрено",
+    "unwatched": "Не просмотрено",
+    "count": "Видео: {count}",
+    "duration": "Длительность",
+    "published": "Опубликовано",
+    "views": "Просмотров",
+    "open": "Открыть",
+    "mark_watched": "Отметить просмотренным",
+    "clear_watched": "Очистить просмотренные",
+    "no_videos": "Нет видео",
+    "recent_videos": "Последние {count} видео"
+  },
+  
+  "errors": {
+    "title": "Ошибки синхронизации",
+    "unresolved": "Нерешённых ошибок: {count}",
+    "no_errors": "Нет нерешённых ошибок синхронизации!",
+    "occurred_at": "Когда: {date}",
+    "channel": "Канал: {name}",
+    "message": "Сообщение: {msg}",
+    "types": {
+      "PLAYLIST_NOT_FOUND": "Плейлист не найден",
+      "DURATION_PARSE_ERROR": "Ошибка обработки длительности",
+      "QUOTA_EXCEEDED": "Превышена квота API",
+      "UNKNOWN": "Неизвестная ошибка"
+    },
+    "explanations": {
+      "PLAYLIST_NOT_FOUND": "Канал не имеет публичного плейлиста. Возможно, это Topic-канал или канал удалён.",
+      "DURATION_PARSE_ERROR": "Ошибка при обработке длительности видео. Обычно это livestream.",
+      "QUOTA_EXCEEDED": "Превышена дневная квота YouTube API (10,000 units). Подождите до следующего дня.",
+      "UNKNOWN": "Неизвестная ошибка. Проверьте детали."
+    }
+  },
+  
+  "migrations": {
+    "title": "Миграции базы данных",
+    "current_version": "Текущая версия схемы: {version}",
+    "available": "Доступно миграций: {count}",
+    "pending": "Ожидают применения: {count}",
+    "pending_list": "Неприменённые миграции:",
+    "applied_list": "Применённые миграции:",
+    "will_apply": "Будет применено {count} миграций",
+    "confirm": "Продолжить? (yes/no):",
+    "cancelled": "Отменено",
+    "success": "Успешно применено {count} миграций",
+    "partial": "Применено {success} из {total} миграций",
+    "check_errors": "Проверьте ошибки выше",
+    "up_to_date": "База данных актуальна, миграции не требуются",
+    "auto_confirm": "[Автоматическое подтверждение включено]"
+  },
+  
+  "stats": {
+    "title": "Статистика",
+    "total_channels": "Всего личных каналов: {count}",
+    "total_subscriptions": "Подписок: {count}",
+    "total_videos": "Видео: {count}",
+    "unwatched_videos": "Не просмотрено: {count}"
+  },
+  
+  "menu": {
+    "choose_action": "Выберите действие:",
+    "exit": "Выход",
+    "your_choice": "Ваш выбор ({min}-{max}):",
+    "invalid_choice": "Некорректный выбор"
+  }
+}

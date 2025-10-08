@@ -6,5 +6,6 @@
   "credentials_file": "config/client_secrets.json",
   "auto_start_web_server": true,
   "open_browser_on_start": true,
-  "log_level": "INFO"
+  "log_level": "INFO",
+  "locale": "ru"
 }

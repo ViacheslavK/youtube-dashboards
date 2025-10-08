@@ -7,11 +7,16 @@ import sys
 import os
 from datetime import datetime
 
-current_dir = os.path.dirname(os.path.abspath(__file__))
-project_root = os.path.dirname(current_dir)
+# Добавляем корневую папку проекта в путь
+current_dir = os.path.dirname(os.path.abspath(__file__))  # utils/
+project_root = os.path.dirname(current_dir)  # корень проекта
 sys.path.insert(0, project_root)
 
 from src.db_manager import Database
+from locales import t, load_locale_from_config
+
+# Загружаем локаль из настроек
+load_locale_from_config()
 
 
 def view_errors():
