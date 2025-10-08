@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 """
-Flask Web Server для YouTube Dashboard
+Flask Web Server for YouTube Dashboard
 """
 
 import os
 import sys
 import json
 import webbrowser
+import logging
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 
-# Добавляем корневую папку в путь
+# Add the root folder to the path
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(current_dir)
 sys.path.insert(0, project_root)
@@ -18,24 +19,35 @@ sys.path.insert(0, project_root)
 from src.db_manager import Database
 from locales import load_locale_from_config, t
 
-# Загружаем локаль
+# Load locale
 load_locale_from_config()
 
-# Создаём Flask приложение
+# Create Flask application
 app = Flask(__name__, 
             static_folder=os.path.join(project_root, 'frontend'),
             static_url_path='')
-CORS(app)  # Разрешаем CORS для разработки
+CORS(app)  # Enable CORS for development
 
-# База данных
+# Database
 db = Database()
 
+# Настройка логирования
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler(os.path.join(project_root, 'logs', 'web_server.log')),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
 
-# === Статические файлы ===
+
+# === Static Files ===
 
 @app.route('/')
 def index():
-    """Главная страница"""
+    """Main page"""
     return send_from_directory(app.static_folder, 'index.html')
 
 
@@ -43,11 +55,11 @@ def index():
 
 @app.route('/api/channels', methods=['GET'])
 def get_channels():
-    """Получить все личные каналы"""
+    """Get all personal channels"""
     try:
         channels = db.get_all_personal_channels()
         
-        # Добавляем статистику для каждого канала
+        # Add statistics for each channel
         for channel in channels:
             videos = db.get_videos_by_personal_channel(channel['id'], include_watched=True)
             unwatched = db.get_videos_by_personal_channel(channel['id'], include_watched=False)
@@ -64,21 +76,22 @@ def get_channels():
             'data': channels
         })
     except Exception as e:
+        logger.error(f"Error in get_channels: {str(e)}", exc_info=True)
         return jsonify({
             'success': False,
-            'error': str(e)
+            'error': 'Internal server error'
         }), 500
 
 
 @app.route('/api/channels/<int:channel_id>/videos', methods=['GET'])
 def get_channel_videos(channel_id):
-    """Получить видео для канала"""
+    """Get videos for channel"""
     try:
         include_watched = request.args.get('include_watched', 'true').lower() == 'true'
         
         videos = db.get_videos_by_personal_channel(channel_id, include_watched=include_watched)
         
-        # Сортируем по дате публикации (новые первыми)
+        # Sort by publication date (newest first)
         videos.sort(key=lambda x: x['published_at'], reverse=True)
         
         return jsonify({
@@ -86,15 +99,16 @@ def get_channel_videos(channel_id):
             'data': videos
         })
     except Exception as e:
+        logger.error(f"Error in get_channel_videos: {str(e)}", exc_info=True)
         return jsonify({
             'success': False,
-            'error': str(e)
+            'error': 'Internal server error'
         }), 500
 
 
 @app.route('/api/videos/<int:video_id>/watch', methods=['POST'])
 def mark_video_watched(video_id):
-    """Отметить видео как просмотренное"""
+    """Mark video as watched"""
     try:
         db.mark_video_watched(video_id)
         
@@ -103,15 +117,16 @@ def mark_video_watched(video_id):
             'message': t('videos.mark_watched')
         })
     except Exception as e:
+        logger.error(f"Error in mark_video_watched: {str(e)}", exc_info=True)
         return jsonify({
             'success': False,
-            'error': str(e)
+            'error': 'Internal server error'
         }), 500
 
 
 @app.route('/api/videos/<int:video_id>', methods=['GET'])
 def get_video(video_id):
-    """Получить информацию о видео (включая authuser)"""
+    """Get video information (including authuser)"""
     try:
         video = db.get_video_by_id(video_id)
         
@@ -126,15 +141,16 @@ def get_video(video_id):
             'data': video
         })
     except Exception as e:
+        logger.error(f"Error in get_video: {str(e)}", exc_info=True)
         return jsonify({
             'success': False,
-            'error': str(e)
+            'error': 'Internal server error'
         }), 500
 
 
 @app.route('/api/channels/<int:channel_id>/clear', methods=['POST'])
 def clear_watched_videos(channel_id):
-    """Очистить просмотренные видео для канала"""
+    """Clear watched videos for channel"""
     try:
         db.clear_watched_videos(channel_id)
         
@@ -143,15 +159,16 @@ def clear_watched_videos(channel_id):
             'message': t('videos.clear_watched')
         })
     except Exception as e:
+        logger.error(f"Error in clear_watched_videos: {str(e)}", exc_info=True)
         return jsonify({
             'success': False,
-            'error': str(e)
+            'error': 'Internal server error'
         }), 500
 
 
 @app.route('/api/stats', methods=['GET'])
 def get_stats():
-    """Получить общую статистику"""
+    """Get overall statistics"""
     try:
         channels = db.get_all_personal_channels()
         
@@ -178,15 +195,16 @@ def get_stats():
             }
         })
     except Exception as e:
+        logger.error(f"Error in get_stats: {str(e)}", exc_info=True)
         return jsonify({
             'success': False,
-            'error': str(e)
+            'error': 'Internal server error'
         }), 500
 
 
 @app.route('/api/errors', methods=['GET'])
 def get_errors():
-    """Получить нерешённые ошибки синхронизации"""
+    """Get unresolved synchronization errors"""
     try:
         errors = db.get_unresolved_errors()
         
@@ -195,16 +213,17 @@ def get_errors():
             'data': errors
         })
     except Exception as e:
+        logger.error(f"Error in get_errors: {str(e)}", exc_info=True)
         return jsonify({
             'success': False,
-            'error': str(e)
+            'error': 'Internal server error'
         }), 500
 
 
-# === Запуск сервера ===
+# === Server Launch ===
 
 def load_config():
-    """Загрузить конфигурацию"""
+    """Load configuration"""
     config_path = os.path.join(project_root, 'config', 'settings.json')
     
     try:
@@ -215,7 +234,7 @@ def load_config():
 
 
 def main():
-    """Запуск веб-сервера"""
+    """Launch web server"""
     config = load_config()
     port = config.get('web_server_port', 8080)
     open_browser = config.get('open_browser_on_start', True)
@@ -229,11 +248,11 @@ def main():
     print(f"[OK] Press Ctrl+C to stop")
     print("=" * 60)
     
-    # Открываем браузер
+    # Open browser
     if open_browser:
         webbrowser.open(url)
-    
-    # Запускаем Flask
+
+    # Launch Flask
     app.run(
         host='0.0.0.0',
         port=port,
