@@ -151,7 +151,6 @@
     "pending": "Pending: {count}",
     "pending_list": "Unapplied migrations:",
     "applied_list": "Applied migrations:",
-    "will_apply": "Will apply {count} migrations",
     "confirm": "Continue? (yes/no):",
     "cancelled": "Cancelled",
     "success": "Successfully applied {count} migrations",

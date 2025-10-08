@@ -8,7 +8,7 @@
 
 ## Использование
 
-### В коде Python:
+### В коде Python
 
 ```python
 from locales import t, set_locale
@@ -24,7 +24,7 @@ set_locale('en')
 print(t('common.yes'))  # "Yes"
 ```
 
-### Через утилиту:
+### Через утилиту
 
 ```bash
 python utils/set_language.py
@@ -35,6 +35,7 @@ python utils/set_language.py
 ## Структура перевода
 
 Файл `ru.json`:
+
 ```json
 {
   "app": {
@@ -50,14 +51,15 @@ python utils/set_language.py
 }
 ```
 
-### Использование:
+### Отображение
+
 - `t('app.name')` → "YouTube Dashboard"
 - `t('common.yes')` → "Да"
 - `t('channels.count', count=5)` → "Каналов: 5"
 
 ## Добавление нового языка
 
-### 1. Создайте файл `locales/XX.json`:
+### 1. Создайте файл `locales/XX.json`
 
 ```json
 {
@@ -80,11 +82,12 @@ python utils/set_language.py
 ### 3. Переведите все ключи
 
 Важно сохранить:
+
 - ✅ Структуру ключей
 - ✅ Плейсхолдеры `{param}`
 - ✅ Форматирование
 
-### 4. Тестирование:
+### 4. Тестирование
 
 ```python
 from locales import set_locale, t
@@ -109,7 +112,7 @@ print(t('app.name'))
 t('sync.channels_found', count=5)  # "Найдено 5 каналов"
 ```
 
-### Множественные параметры:
+### Множественные параметры
 
 ```json
 {
@@ -126,6 +129,7 @@ t('test.multi', name='Канал', count=10)
 ## Fallback
 
 Если перевод не найден в текущей локали, система:
+
 1. Пытается найти в дефолтной локали (`ru`)
 2. Если не найдено - возвращает `[ключ]`
 
@@ -136,7 +140,7 @@ t('non.existent.key')  # "[non.existent.key]"
 
 ## Best Practices
 
-### ✅ Хорошо:
+### ✅ Хорошо
 
 ```python
 # Используйте t() для всех текстов UI
@@ -150,7 +154,7 @@ print(t('channels.count', count=len(channels)))
 "sync.subscriptions_found"
 ```
 
-### ❌ Избегайте:
+### ❌ Избегайте
 
 ```python
 # Не хардкодьте тексты
@@ -164,7 +168,7 @@ print(f"Каналов: {count}")  # Плохо
 
 Организация по модулям:
 
-```
+```sh
 app.*           - О приложении
 common.*        - Общие элементы (кнопки, статусы)
 setup.*         - Настройка каналов
@@ -180,13 +184,13 @@ menu.*          - Меню
 
 ## Проверка переводов
 
-### Автоматические тесты:
+### Автоматические тесты
 
 ```bash
 pytest tests/test_i18n.py
 ```
 
-### Ручная проверка:
+### Ручная проверка
 
 ```python
 from locales import get_i18n
@@ -201,7 +205,7 @@ for key in ['app.name', 'common.yes', ...]:
 
 ## Примеры использования
 
-### В скриптах:
+### В скриптах
 
 ```python
 # utils/view_stats.py
@@ -216,7 +220,7 @@ def main():
     print(t('stats.total_channels', count=len(channels)))
 ```
 
-### В CLI меню:
+### В CLI меню
 
 ```python
 print(t('menu.choose_action'))
@@ -226,7 +230,7 @@ print(f"2. {t('videos.title')}")
 choice = input(t('menu.your_choice', min=1, max=2))
 ```
 
-### В сообщениях об ошибках:
+### В сообщениях об ошибках
 
 ```python
 try:

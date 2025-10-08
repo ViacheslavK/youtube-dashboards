@@ -2,7 +2,7 @@
 
 ## Structure
 
-```
+```sh
 tests/
 ├── __init__.py
 ├── conftest.py              # Common fixtures
@@ -14,11 +14,11 @@ tests/
 
 ---
 
-# Тесты YouTube Dashboard
+## Тесты YouTube Dashboard
 
 ## Структура
 
-```
+```sh
 tests/
 ├── __init__.py
 ├── conftest.py              # Общие фикстуры
@@ -101,22 +101,26 @@ pytest tests/test_db_manager.py::TestPersonalChannels::test_add_personal_channel
 ## Test Types
 
 ### Unit Tests (`@pytest.mark.unit`)
+
 - Fast, isolated
 - Test individual functions/methods
 - No external service dependencies
 - Use mocks for DB and API
 
 ### Integration Tests (`@pytest.mark.integration`)
+
 - Test component interactions
 - Use real (test) database
 - Slower than unit tests
 
 ### API Tests (`@pytest.mark.api`)
+
 - Test YouTube API
 - Use mocks (no real requests)
 - Verify API response handling
 
 ### Slow Tests (`@pytest.mark.slow`)
+
 - Long-running tests (none currently)
 - Can be skipped: `pytest -m "not slow"`
 
@@ -150,6 +154,7 @@ Current coverage by modules:
 - `migrations/migration_manager.py` - **~85%**
 
 Not covered by coverage:
+
 - CLI scripts (utils/*)
 - Main entry points (setup_channels.py, sync_subscriptions.py)
 
