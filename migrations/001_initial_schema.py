@@ -1,14 +1,14 @@
 """
-Миграция 001: Initial Schema
+Migration 001: Initial Schema
 
-Создание базовой структуры БД
+Creates the basic database structure.
 """
 
 
 def upgrade(cursor):
-    """Применение миграции"""
+    """Applies the migration."""
     
-    # Личные каналы пользователя
+    # User's personal channels
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS personal_channels (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -22,7 +22,7 @@ def upgrade(cursor):
         )
     ''')
     
-    # Подписки
+    # Subscriptions
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS subscriptions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -36,7 +36,7 @@ def upgrade(cursor):
         )
     ''')
     
-    # Видео
+    # Videos
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS videos (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -56,7 +56,7 @@ def upgrade(cursor):
         )
     ''')
     
-    # Индексы
+    # Indexes
     cursor.execute('''
         CREATE INDEX IF NOT EXISTS idx_videos_watched 
         ON videos(is_watched, published_at DESC)

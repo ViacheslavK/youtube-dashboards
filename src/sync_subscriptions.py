@@ -1,27 +1,27 @@
 #!/usr/bin/env python3
 """
-Скрипт для синхронизации подписок и получения новых видео
+Script for synchronizing subscriptions and fetching new videos.
 """
 
 import sys
 import os
 from datetime import datetime
 
-# Добавляем корневую папку проекта в путь
+# Add the project root folder to the path
 current_dir = os.path.dirname(os.path.abspath(__file__))  # src/
-project_root = os.path.dirname(current_dir)  # корень проекта
+project_root = os.path.dirname(current_dir)  # project root
 sys.path.insert(0, project_root)
 
 from src.db_manager import Database
 from src.youtube_api import YouTubeAPI
 from locales.i18n import t, load_locale_from_config
 
-# Загружаем локаль из настроек
+# Load locale from settings
 load_locale_from_config()
 
 
 def sync_subscriptions(db: Database):
-    """Синхронизация подписок для всех личных каналов"""
+    """Synchronize subscriptions for all personal channels."""
     channels = db.get_all_personal_channels()
 
     if not channels:
@@ -39,15 +39,15 @@ def sync_subscriptions(db: Database):
             api = YouTubeAPI('config/client_secrets.json')
             api.authenticate(channel['oauth_token_path'])
 
-            # Получаем подписки
+            # Get subscriptions
             print(t('sync.loading_subscriptions'))
             subscriptions = api.get_subscriptions()
             print(t('sync.subscriptions_found', count=len(subscriptions)))
 
-            # Получаем список YouTube channel IDs
+            # Get a list of YouTube channel IDs
             current_youtube_ids = [sub['channel_id'] for sub in subscriptions]
 
-            # Синхронизируем статус (активные/неактивные)
+            # Synchronize status (active/inactive)
             print(t('sync.checking_status'))
             stats = db.sync_subscriptions_status(channel['id'], current_youtube_ids)
 
@@ -57,7 +57,7 @@ def sync_subscriptions(db: Database):
                 print(f"  ✓ {t('sync.activated', count=stats['activated'])}")
             print(f"  ✓ {t('sync.unchanged', count=stats['unchanged'])}")
 
-            # Сохраняем новые подписки в БД
+            # Save new subscriptions to the database
             added_count = 0
             for sub in subscriptions:
                 subscription_id = db.add_subscription(
@@ -80,7 +80,7 @@ def sync_subscriptions(db: Database):
 
 
 def sync_videos(db: Database, max_videos_per_channel: int = 5):
-    """Получение новых видео со всех подписок"""
+    """Fetch new videos from all subscriptions."""
     channels = db.get_all_personal_channels()
     
     if not channels:
@@ -98,7 +98,7 @@ def sync_videos(db: Database, max_videos_per_channel: int = 5):
             api = YouTubeAPI('config/client_secrets.json')
             api.authenticate(channel['oauth_token_path'])
 
-            # Получаем подписки из БД
+            # Get subscriptions from the database
             subscriptions = db.get_subscriptions_by_channel(channel['id'])
             print(t('sync.processing_subscriptions', count=len(subscriptions)))
 
@@ -106,13 +106,13 @@ def sync_videos(db: Database, max_videos_per_channel: int = 5):
             
             for i, sub in enumerate(subscriptions, 1):
                 try:
-                    # Получаем последние видео с канала
+                    # Get the latest videos from the channel
                     videos = api.get_channel_videos(
                         sub['youtube_channel_id'],
                         max_results=max_videos_per_channel
                     )
                     
-                    # Сохраняем в БД
+                    # Save to the database
                     for video in videos:
                         video_id = db.add_video(
                             subscription_id=sub['id'],
@@ -125,16 +125,16 @@ def sync_videos(db: Database, max_videos_per_channel: int = 5):
                             view_count=video.get('view_count')
                         )
                         
-                        if video_id:  # Новое видео
+                        if video_id:  # New video
                             channel_new_videos += 1
                     
-                    # Прогресс
+                    # Progress
                     if i % 10 == 0:
                         print(f"  {t('sync.progress', current=i, total=len(subscriptions))}")
                 
                 except Exception as e:
                     error_msg = str(e)
-                    # Определяем тип ошибки
+                    # Determine the error type
                     if 'playlistNotFound' in error_msg or '404' in error_msg:
                         error_type = 'PLAYLIST_NOT_FOUND'
                     elif 'duration' in error_msg:
@@ -144,13 +144,13 @@ def sync_videos(db: Database, max_videos_per_channel: int = 5):
                     else:
                         error_type = 'UNKNOWN'
                     
-                    # Логируем ошибку
+                    # Log the error
                     db.log_sync_error(
                         personal_channel_id=channel['id'],
                         subscription_id=sub['id'],
                         channel_name=sub['channel_name'],
                         error_type=error_type,
-                        error_message=error_msg[:500]  # Ограничиваем длину
+                        error_message=error_msg[:500]  # Limit the length
                     )
                     
                     print(f"  ⚠️  {t('sync.error_processing_subscription', channel=sub['channel_name'], error=error_type)}")
@@ -167,18 +167,18 @@ def sync_videos(db: Database, max_videos_per_channel: int = 5):
     print(t('sync.sync_complete_global'))
     print(t('sync.total_new_videos', count=total_new_videos))
 
-    # Показываем статистику ошибок
+    # Show error statistics
     errors = db.get_unresolved_errors()
     if errors:
         print(f"\n⚠️  {t('sync.errors_found', count=len(errors))}")
 
-        # Группируем по типу
+        # Group by type
         error_types = {}
         for err in errors:
             error_types[err['error_type']] = error_types.get(err['error_type'], 0) + 1
 
         for error_type, count in error_types.items():
-            print(f"  - {error_type}: {count} подписок")
+            print(f"  - {error_type}: {count} subscriptions")
 
         print(f"\n{t('sync.error_details')}")
 
@@ -193,16 +193,16 @@ def main():
     db = Database()
 
     print(f"\n{t('sync.choose_action')}:")
-    print("1. Синхронизировать подписки (обновить список каналов)")
-    print("2. Загрузить новые видео")
-    print("3. Выполнить полную синхронизацию (подписки + видео)")
+    print("1. Synchronize subscriptions (update channel list)")
+    print("2. Download new videos")
+    print("3. Perform a full synchronization (subscriptions + videos)")
 
     choice = input(f"\n{t('sync.your_choice', min=1, max=3)}: ").strip()
 
     if choice == '1':
         sync_subscriptions(db)
     elif choice == '2':
-        print("\nСколько видео загружать с каждого канала?")
+        print("\nHow many videos to download from each channel?")
         try:
             max_videos = int(input(t('sync.video_count_default', default=5)).strip() or "5")
         except ValueError:
@@ -222,10 +222,10 @@ if __name__ == '__main__':
     try:
         main()
     except KeyboardInterrupt:
-        print("\n\n⚠️  Прервано пользователем")
+        print("\n\n⚠️  Interrupted by user")
         sys.exit(0)
     except Exception as e:
-        print(f"\n❌ Критическая ошибка: {e}")
+        print(f"\n❌ Critical error: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)

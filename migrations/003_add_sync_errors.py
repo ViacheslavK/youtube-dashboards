@@ -1,14 +1,14 @@
 """
-Миграция 003: Add Sync Errors
+Migration 003: Add Sync Errors
 
-Добавление таблицы для логирования ошибок синхронизации
+Adds a table for logging synchronization errors.
 """
 
 
 def upgrade(cursor):
-    """Применение миграции"""
+    """Applies the migration."""
     
-    # Создаём таблицу для ошибок синхронизации
+    # Create table for synchronization errors
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS sync_errors (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -25,7 +25,7 @@ def upgrade(cursor):
     ''')
     print("  [OK] Created table: sync_errors")
     
-    # Создаём индекс
+    # Create index
     cursor.execute('''
         CREATE INDEX IF NOT EXISTS idx_sync_errors_unresolved 
         ON sync_errors(resolved, occurred_at DESC)

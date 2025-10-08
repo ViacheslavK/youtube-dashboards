@@ -1,24 +1,24 @@
 #!/usr/bin/env python3
 """
-CLI для управления миграциями базы данных
+CLI for managing database migrations.
 """
 
 import sys
 import os
 import argparse
 
-# Добавляем путь к migrations
+# Add migrations path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from migrations.migration_manager import MigrationManager, create_migration_template
 from locales.i18n import t, load_locale_from_config
 
-# Загружаем локаль из настроек
+# Load locale from settings
 load_locale_from_config()
 
 
 def migrate_up(manager: MigrationManager, target_version: int = None, auto_yes: bool = False):
-    """Применить миграции"""
+    """Apply migrations."""
     print(f"\n{'=' * 60}")
     print(t('migrations.apply_migrations'))
     print('=' * 60)
@@ -61,12 +61,12 @@ def migrate_up(manager: MigrationManager, target_version: int = None, auto_yes: 
 
 
 def show_status(manager: MigrationManager):
-    """Показать статус миграций"""
+    """Show migration status."""
     manager.print_status()
 
 
 def create_new_migration(name: str):
-    """Создать новую миграцию"""
+    """Create a new migration."""
     print(f"\n{'=' * 60}")
     print(t('migrations.creating_migration'))
     print('=' * 60)
@@ -78,30 +78,30 @@ def create_new_migration(name: str):
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Управление миграциями базы данных YouTube Dashboard'
+        description='Manage YouTube Dashboard database migrations'
     )
     
-    subparsers = parser.add_subparsers(dest='command', help='Команды')
+    subparsers = parser.add_subparsers(dest='command', help='Commands')
     
     # migrate up
-    migrate_parser = subparsers.add_parser('up', help='Применить миграции')
+    migrate_parser = subparsers.add_parser('up', help='Apply migrations')
     migrate_parser.add_argument(
         '--target', 
         type=int, 
-        help='Целевая версия (по умолчанию - последняя)'
+        help='Target version (default: latest)'
     )
     migrate_parser.add_argument(
         '--yes', '-y',
         action='store_true',
-        help='Автоматически подтвердить (для CI/CD)'
+        help='Automatically confirm (for CI/CD)'
     )
     
     # status
-    subparsers.add_parser('status', help='Показать статус миграций')
+    subparsers.add_parser('status', help='Show migration status')
     
     # create
-    create_parser = subparsers.add_parser('create', help='Создать новую миграцию')
-    create_parser.add_argument('name', help='Название миграции (например, add_user_settings)')
+    create_parser = subparsers.add_parser('create', help='Create a new migration')
+    create_parser.add_argument('name', help='Migration name (e.g., add_user_settings)')
     
     args = parser.parse_args()
     
@@ -109,7 +109,7 @@ def main():
         parser.print_help()
         return
     
-    # Инициализируем менеджер
+    # Initialize the manager
     manager = MigrationManager()
     
     if args.command == 'up':
@@ -124,7 +124,7 @@ if __name__ == '__main__':
     try:
         main()
     except KeyboardInterrupt:
-        print("\n\n⚠️  Прервано пользователем")
+        print("\n\n⚠️  Interrupted by user")
         sys.exit(0)
     except Exception as e:
         print(f"\n❌ {t('common.error')}: {e}")

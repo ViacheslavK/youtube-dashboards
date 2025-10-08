@@ -1,22 +1,22 @@
 #!/usr/bin/env python3
 """
-Скрипт для проверки установки и настройки
+Script for checking installation and configuration.
 """
 
 import os
 import sys
 
-# Добавляем путь к проекту
+# Add project path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from locales.i18n import t, load_locale_from_config
 
-# Загружаем локаль из настроек
+# Load locale from settings
 load_locale_from_config()
 
 
 def check_dependencies():
-    """Проверка установленных зависимостей"""
+    """Checks installed dependencies."""
     print(t('setup_check.checking_dependencies'))
 
     required = [
@@ -45,7 +45,7 @@ def check_dependencies():
 
 
 def check_structure():
-    """Проверка структуры проекта"""
+    """Checks the project structure."""
     print(t('setup_check.checking_structure'))
 
     required_dirs = [
@@ -65,7 +65,7 @@ def check_structure():
 
 
 def check_credentials():
-    """Проверка наличия credentials"""
+    """Checks for the presence of credentials."""
     print(t('setup_check.checking_credentials'))
 
     creds_file = 'config/client_secrets.json'
@@ -87,7 +87,7 @@ def check_credentials():
 
 
 def check_database():
-    """Проверка базы данных"""
+    """Checks the database."""
     print(t('setup_check.checking_database'))
 
     try:
@@ -99,7 +99,7 @@ def check_database():
         print(f"  ℹ  {t('setup_check.channels_count', count=len(channels))}")
 
         if channels:
-            print("\n  Личные каналы:")
+            print("\n  Personal channels:")
             for ch in channels:
                 videos_count = len(db.get_videos_by_personal_channel(ch['id']))
                 print(t('setup_check.channel_videos', name=ch['name'], count=videos_count))
@@ -120,10 +120,10 @@ def main():
     print()
 
     checks = [
-        ("Зависимости", check_dependencies),
-        ("Структура проекта", check_structure),
+        ("Dependencies", check_dependencies),
+        ("Project structure", check_structure),
         ("Credentials", check_credentials),
-        ("База данных", check_database),
+        ("Database", check_database),
     ]
 
     results = []
@@ -159,5 +159,5 @@ if __name__ == '__main__':
     try:
         main()
     except KeyboardInterrupt:
-        print("\n\n⚠️  Прервано пользователем")
+        print("\n\n⚠️  Interrupted by user")
         sys.exit(0)

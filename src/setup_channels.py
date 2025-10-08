@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
 """
-Скрипт для первоначальной настройки личных каналов
+Script for the initial setup of personal channels.
 """
 
 import os
 import sys
 
-# Добавляем корневую папку проекта в путь
+# Add the project root folder to the path
 current_dir = os.path.dirname(os.path.abspath(__file__))  # src/
-project_root = os.path.dirname(current_dir)  # корень проекта
+project_root = os.path.dirname(current_dir)  # project root
 sys.path.insert(0, project_root)
 
 from src.db_manager import Database
 from src.youtube_api import YouTubeAPI, setup_new_channel
 from locales.i18n import t, load_locale_from_config
 
-# Загружаем локаль из настроек
+# Load locale from settings
 load_locale_from_config()
 
 
@@ -40,29 +40,29 @@ def main():
     print(f"{t('app.name')} - {t('setup.title')}")
     print("=" * 60)
 
-    # Проверяем наличие credentials
+    # Check for credentials
     credentials_file = 'config/client_secrets.json'
     if not os.path.exists(credentials_file):
         print(f"\n❌ {t('common.error').upper()}: client_secrets.json {t('app.not_found')}")
         print(f"\n{t('setup.instructions_title')}:")
-        print("1. Зайти в Google Cloud Console: https://console.cloud.google.com/")
-        print("2. Создать новый проект или выбрать существующий")
-        print("3. Включить YouTube Data API v3")
-        print("4. Создать OAuth 2.0 credentials (Desktop app)")
-        print("5. Скачать JSON файл и сохранить как 'config/client_secrets.json'")
-        print("\nПодробная инструкция: https://developers.google.com/youtube/v3/quickstart/python")
+        print("1. Go to the Google Cloud Console: https://console.cloud.google.com/")
+        print("2. Create a new project or select an existing one")
+        print("3. Enable the YouTube Data API v3")
+        print("4. Create OAuth 2.0 credentials (Desktop app)")
+        print("5. Download the JSON file and save it as 'config/client_secrets.json'")
+        print("\nDetailed instructions: https://developers.google.com/youtube/v3/quickstart/python")
         sys.exit(1)
     
-    # Создаём директории
+    # Create directories
     os.makedirs('config/youtube_credentials', exist_ok=True)
     os.makedirs('database', exist_ok=True)
     
-    # Инициализируем БД
+    # Initialize the database
     db = Database()
 
     print(f"\n{t('setup.db_initialized')}")
 
-    # Проверяем существующие каналы
+    # Check for existing channels
     existing_channels = db.get_all_personal_channels()
     if existing_channels:
         print(f"\n📺 {t('setup.channels_found', count=len(existing_channels))}")
@@ -70,9 +70,9 @@ def main():
             print(f"  - {ch['name']} (ID: {ch['id']})")
 
         print(f"\n{t('setup.choose_action')}:")
-        print("1. Добавить новый канал")
-        print("2. Обновить существующие каналы")
-        print("3. Выход")
+        print("1. Add a new channel")
+        print("2. Update existing channels")
+        print("3. Exit")
 
         choice = input(f"\n{t('setup.your_choice', min=1, max=3)}: ").strip()
         
@@ -82,18 +82,18 @@ def main():
             update_existing_channels(db, existing_channels)
             return
     
-    # Добавление новых каналов
+    # Add new channels
     add_new_channels(db)
 
 
 def add_new_channels(db: Database):
-    """Добавление новых личных каналов"""
+    """Add new personal channels."""
     print(f"\n{'=' * 60}")
     print(t('setup.adding_channels_title'))
     print('=' * 60)
 
     print(f"\n{t('setup.channels_count')}")
-    print("(У вас 12 каналов, но активно используете 7)")
+    print("(You have 12 channels, but actively use 7)")
 
     try:
         count = int(input(t('setup.channels_input')).strip())
@@ -117,12 +117,12 @@ def add_new_channels(db: Database):
             print(f"❌ {t('setup.name_required')}")
             continue
 
-        # Выбираем цвет
+        # Select color
         color = COLORS[i % len(COLORS)]
         print(f"{t('setup.channel_color', color=color)}")
 
         try:
-            # Авторизация через OAuth
+            # Authorize via OAuth
             channel_info = setup_new_channel(name, 'config/client_secrets.json')
             channel_info['color'] = color
             channels_data.append(channel_info)
@@ -132,7 +132,7 @@ def add_new_channels(db: Database):
             print(t('setup.skip_channel'))
             continue
     
-    # Сохраняем в БД
+    # Save to the database
     if channels_data:
         print(f"\n{'=' * 60}")
         print(t('setup.saving_channels_title'))
@@ -155,7 +155,7 @@ def add_new_channels(db: Database):
 
 
 def update_existing_channels(db: Database, channels: list):
-    """Обновление подписок для существующих каналов"""
+    """Update subscriptions for existing channels."""
     print(f"\n{'=' * 60}")
     print(t('setup.update_channels_title'))
     print('=' * 60)
@@ -169,12 +169,12 @@ def update_existing_channels(db: Database, channels: list):
 
             print(f"✓ {t('setup.auth_success_general')}")
 
-            # Получаем подписки
+            # Get subscriptions
             print(t('setup.loading_subs'))
             subscriptions = api.get_subscriptions()
             print(t('setup.subs_found', count=len(subscriptions)))
 
-            # Сохраняем в БД
+            # Save to the database
             for sub in subscriptions:
                 db.add_subscription(
                     personal_channel_id=channel['id'],
@@ -196,10 +196,10 @@ if __name__ == '__main__':
     try:
         main()
     except KeyboardInterrupt:
-        print("\n\n⚠️  Прервано пользователем")
+        print("\n\n⚠️  Interrupted by user")
         sys.exit(0)
     except Exception as e:
-        print(f"\n❌ Критическая ошибка: {e}")
+        print(f"\n❌ Critical error: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)
