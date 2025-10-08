@@ -6,8 +6,31 @@ import pytest
 import json
 import tempfile
 import os
+import logging
 from unittest.mock import Mock, patch, MagicMock
 from pathlib import Path
+
+
+@pytest.fixture(autouse=True)
+def mock_logging_setup():
+    """Mock logging setup to prevent file system access in CI"""
+    with patch('src.web_server.os.path.join') as mock_join, \
+         patch('src.web_server.logging.basicConfig') as mock_basic_config, \
+         patch('src.web_server.logging.FileHandler') as mock_file_handler, \
+         patch('src.web_server.logging.StreamHandler') as mock_stream_handler, \
+         patch('src.web_server.logging.getLogger') as mock_get_logger:
+
+        # Configure mocks
+        mock_join.return_value = '/tmp/test.log'
+        mock_logger = MagicMock()
+        mock_get_logger.return_value = mock_logger
+
+        # Import the module after setting up mocks
+        import importlib
+        import src.web_server
+        importlib.reload(src.web_server)
+
+        yield mock_logger
 
 
 @pytest.mark.unit
@@ -315,6 +338,7 @@ class TestConfiguration:
         }
 
         with patch('src.web_server.project_root', '/test/path'), \
+             patch('src.web_server.os.path.join', return_value='/test/path/config/settings.json'), \
              patch('builtins.open', create=True) as mock_file:
             mock_file.return_value.__enter__.return_value.read.return_value = json.dumps(config_data)
 
@@ -328,6 +352,7 @@ class TestConfiguration:
         from src.web_server import load_config
 
         with patch('src.web_server.project_root', '/test/path'), \
+             patch('src.web_server.os.path.join', return_value='/test/path/config/settings.json'), \
              patch('builtins.open', side_effect=FileNotFoundError()):
             result = load_config()
 
@@ -396,8 +421,8 @@ class TestMainFunction:
     @patch('src.web_server.app.run')
     @patch('src.web_server.load_config')
     @patch('src.web_server.print')
-    @patch('builtins.open', create=True)
-    def test_main_function_with_browser(self, mock_file, mock_print, mock_load_config, mock_app_run, mock_webbrowser):
+    @patch('src.web_server.project_root', '/test/project')
+    def test_main_function_with_browser(self, mock_print, mock_load_config, mock_app_run, mock_webbrowser):
         """Test main function opens browser when configured"""
         from src.web_server import main
 
@@ -405,8 +430,6 @@ class TestMainFunction:
             'web_server_port': 9000,
             'open_browser_on_start': True
         }
-
-        mock_file.return_value.__enter__.return_value.read.return_value = json.dumps({})
 
         # Mock KeyboardInterrupt to exit cleanly
         with patch('builtins.input', side_effect=KeyboardInterrupt()):
@@ -427,6 +450,7 @@ class TestMainFunction:
     @patch('src.web_server.app.run')
     @patch('src.web_server.load_config')
     @patch('src.web_server.print')
+    @patch('src.web_server.project_root', '/test/project')
     def test_main_function_without_browser(self, mock_print, mock_load_config, mock_app_run, mock_webbrowser):
         """Test main function doesn't open browser when disabled"""
         from src.web_server import main
