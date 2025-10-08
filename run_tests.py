@@ -6,6 +6,15 @@
 import sys
 import subprocess
 import argparse
+import os
+
+# Добавляем путь к проекту
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from locales.i18n import t, load_locale_from_config
+
+# Загружаем локаль из настроек
+load_locale_from_config()
 
 
 def run_tests(test_type='all', coverage=False, verbose=False):
@@ -31,19 +40,19 @@ def run_tests(test_type='all', coverage=False, verbose=False):
     else:
         cmd.append('-v')
     
-    print(f"Запуск: {' '.join(cmd)}")
+    print(t('tests.running_command', command=' '.join(cmd)))
     print("=" * 60)
-    
+
     result = subprocess.run(cmd)
-    
+
     if result.returncode == 0:
         print("\n" + "=" * 60)
-        print("✅ Все тесты пройдены!")
+        print(f"✅ {t('tests.all_passed')}")
         if coverage:
-            print("\nОтчёт coverage: htmlcov/index.html")
+            print(f"\n{t('tests.report_location')}")
     else:
         print("\n" + "=" * 60)
-        print("❌ Некоторые тесты не прошли")
+        print(f"❌ {t('tests.some_failed')}")
         sys.exit(1)
 
 

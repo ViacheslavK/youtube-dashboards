@@ -7,6 +7,10 @@ import os
 import importlib.util
 from typing import List, Tuple
 from datetime import datetime
+from locales.i18n import t, load_locale_from_config
+
+# Загружаем локаль из настроек
+load_locale_from_config()
 
 
 class MigrationManager:
@@ -98,7 +102,7 @@ class MigrationManager:
         """
         try:
             print(f"\n{'─' * 60}")
-            print(f"Применение миграции {version}: {filename}")
+            print(t('migrations.applying_migration', version=version, filename=filename))
             print('─' * 60)
             
             # Загружаем модуль миграции
@@ -106,7 +110,7 @@ class MigrationManager:
             
             # Получаем функцию upgrade
             if not hasattr(module, 'upgrade'):
-                print(f"❌ Миграция {filename} не содержит функцию upgrade()")
+                print(f"❌ {t('migrations.migration_missing_upgrade', filename=filename)}")
                 return False
             
             # Применяем миграцию
@@ -125,18 +129,18 @@ class MigrationManager:
                 ''', (version, migration_name))
                 
                 conn.commit()
-                print(f"[OK] Migration {version} successfully applied")
+                print(f"[OK] {t('migrations.migration_applied', version=version)}")
                 return True
-                
+
             except Exception as e:
                 conn.rollback()
-                print(f"❌ Ошибка при применении миграции {version}: {e}")
+                print(f"❌ {t('migrations.migration_apply_error', version=version, error=str(e))}")
                 return False
             finally:
                 conn.close()
         
         except Exception as e:
-            print(f"❌ Ошибка загрузки миграции {filename}: {e}")
+            print(f"❌ {t('migrations.migration_load_error', filename=filename, error=str(e))}")
             return False
     
     def migrate(self, target_version: int = None) -> Tuple[int, int]:
@@ -164,7 +168,7 @@ class MigrationManager:
                 success_count += 1
             else:
                 # Останавливаемся при первой ошибке
-                print("\n⚠️  Миграция прервана из-за ошибки")
+                print(f"\n⚠️  {t('migrations.migration_interrupted')}")
                 break
         
         return (success_count, len(pending))
@@ -190,29 +194,29 @@ class MigrationManager:
         current_version = self.get_current_version()
         pending = self.get_pending_migrations()
         all_migrations = self.get_available_migrations()
-        
+
         print(f"\n{'=' * 60}")
-        print("Статус миграций базы данных")
+        print(t('migrations.title'))
         print('=' * 60)
-        print(f"\nТекущая версия схемы: {current_version}")
-        print(f"Доступно миграций: {len(all_migrations)}")
-        print(f"Ожидают применения: {len(pending)}")
-        
+        print(f"\n{t('migrations.current_version', version=current_version)}")
+        print(t('migrations.available', count=len(all_migrations)))
+        print(t('migrations.pending', count=len(pending)))
+
         if pending:
-            print("\nНеприменённые миграции:")
+            print(f"\n{t('migrations.pending_list')}")
             for version, filename in pending:
                 migration_name = filename.replace('.py', '').replace(f'{version:03d}_', '')
                 print(f"  [{version}] {migration_name}")
-        
+
         # История
         history = self.get_migration_history()
         if history:
-            print("\nПрименённые миграции:")
+            print(f"\n{t('migrations.applied_list')}")
             for record in history:
                 applied = datetime.fromisoformat(record['applied_at'])
                 print(f"  [{record['version']}] {record['name']} "
                       f"({applied.strftime('%Y-%m-%d %H:%M')})")
-        
+
         print('=' * 60)
 
 
@@ -237,7 +241,7 @@ def create_migration_template(name: str, version: int = None):
     filepath = os.path.join(migrations_dir, filename)
     
     if os.path.exists(filepath):
-        print(f"❌ Миграция {filename} уже существует")
+        print(f"❌ {t('migrations.migration_already_exists', filename=filename)}")
         return
     
     # Шаблон миграции

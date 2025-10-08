@@ -1,3 +1,19 @@
+# YouTube Dashboard Tests
+
+## Structure
+
+```
+tests/
+├── __init__.py
+├── conftest.py              # Common fixtures
+├── test_db_manager.py       # Database tests
+├── test_youtube_api.py      # YouTube API tests (mocks)
+├── test_migrations.py       # Migration system tests
+└── test_utils.py            # Utilities tests
+```
+
+---
+
 # Тесты YouTube Dashboard
 
 ## Структура
@@ -12,110 +28,110 @@ tests/
 └── test_utils.py            # Тесты утилит
 ```
 
-## Установка зависимостей
+## Dependencies Installation
 
 ```bash
 pip install -r requirements-dev.txt
 ```
 
-## Запуск тестов
+## Running Tests
 
-### Все тесты
+### All Tests
 
 ```bash
 pytest
 ```
 
-или
+or
 
 ```bash
 make test
 ```
 
-### Только unit тесты (быстрые)
+### Unit Tests Only (Fast)
 
 ```bash
 pytest -m unit
 ```
 
-или
+or
 
 ```bash
 make test-unit
 ```
 
-### Интеграционные тесты
+### Integration Tests
 
 ```bash
 pytest -m integration
 ```
 
-или
+or
 
 ```bash
 make test-integration
 ```
 
-### С coverage отчётом
+### With Coverage Report
 
 ```bash
 pytest --cov=src --cov-report=html
 ```
 
-или
+or
 
 ```bash
 make test-cov
 ```
 
-Отчёт будет в `htmlcov/index.html`
+Report will be in `htmlcov/index.html`
 
-### Конкретный файл
+### Specific File
 
 ```bash
 pytest tests/test_db_manager.py
 ```
 
-### Конкретный тест
+### Specific Test
 
 ```bash
 pytest tests/test_db_manager.py::TestPersonalChannels::test_add_personal_channel
 ```
 
-## Типы тестов
+## Test Types
 
-### Unit тесты (`@pytest.mark.unit`)
-- Быстрые, изолированные
-- Тестируют отдельные функции/методы
-- Не зависят от внешних сервисов
-- Используют моки для БД и API
+### Unit Tests (`@pytest.mark.unit`)
+- Fast, isolated
+- Test individual functions/methods
+- No external service dependencies
+- Use mocks for DB and API
 
-### Integration тесты (`@pytest.mark.integration`)
-- Тестируют взаимодействие компонентов
-- Используют реальную (тестовую) БД
-- Медленнее unit тестов
+### Integration Tests (`@pytest.mark.integration`)
+- Test component interactions
+- Use real (test) database
+- Slower than unit tests
 
-### API тесты (`@pytest.mark.api`)
-- Тестируют YouTube API
-- Используют моки (не делают реальные запросы)
-- Проверяют обработку ответов API
+### API Tests (`@pytest.mark.api`)
+- Test YouTube API
+- Use mocks (no real requests)
+- Verify API response handling
 
-### Slow тесты (`@pytest.mark.slow`)
-- Долгие тесты (пока нет)
-- Можно пропускать: `pytest -m "not slow"`
+### Slow Tests (`@pytest.mark.slow`)
+- Long-running tests (none currently)
+- Can be skipped: `pytest -m "not slow"`
 
-## Фикстуры
+## Fixtures
 
-### Основные фикстуры (conftest.py)
+### Main Fixtures (conftest.py)
 
-- `temp_db_path` - путь к временной БД
-- `db` - инициализированная тестовая БД
-- `sample_channel_data` - тестовые данные канала
-- `sample_subscription_data` - тестовые данные подписки
-- `sample_video_data` - тестовые данные видео
-- `populated_db` - БД с готовыми тестовыми данными
+- `temp_db_path` - path to temporary database
+- `db` - initialized test database
+- `sample_channel_data` - test channel data
+- `sample_subscription_data` - test subscription data
+- `sample_video_data` - test video data
+- `populated_db` - database with ready test data
 
-### Использование фикстур
+### Fixture Usage
 
 ```python
 def test_something(db, sample_channel_data):
@@ -125,19 +141,19 @@ def test_something(db, sample_channel_data):
 
 ## Coverage
 
-Целевой coverage: **>80%**
+Target coverage: **>80%**
 
-Текущий coverage по модулям:
+Current coverage by modules:
 
 - `src/db_manager.py` - **~90%**
-- `src/youtube_api.py` - **~75%** (моки API)
+- `src/youtube_api.py` - **~75%** (API mocks)
 - `migrations/migration_manager.py` - **~85%**
 
-Не покрыто coverage:
-- CLI скрипты (utils/*)
-- Главные entry points (setup_channels.py, sync_subscriptions.py)
+Not covered by coverage:
+- CLI scripts (utils/*)
+- Main entry points (setup_channels.py, sync_subscriptions.py)
 
-## Линтинг
+## Linting
 
 ### Flake8
 
@@ -145,19 +161,19 @@ def test_something(db, sample_channel_data):
 flake8 src/ utils/ tests/
 ```
 
-или
+or
 
 ```bash
 make lint
 ```
 
-### Black (форматирование)
+### Black (Formatting)
 
 ```bash
 black src/ utils/ tests/
 ```
 
-или
+or
 
 ```bash
 make format
@@ -165,13 +181,13 @@ make format
 
 ## CI/CD
 
-Тесты автоматически запускаются в GitHub Actions при каждом push.
+Tests are automatically run in GitHub Actions on each push.
 
-См. `.github/workflows/test.yml`
+See `.github/workflows/test.yml`
 
-## Добавление новых тестов
+## Adding New Tests
 
-### 1. Создайте файл `test_*.py`
+### 1. Create file `test_*.py`
 
 ```python
 import pytest
@@ -180,15 +196,15 @@ import pytest
 def test_my_feature():
     # arrange
     data = {'key': 'value'}
-    
+
     # act
     result = my_function(data)
-    
+
     # assert
     assert result == expected
 ```
 
-### 2. Используйте фикстуры
+### 2. Use Fixtures
 
 ```python
 def test_with_db(db, sample_channel_data):
@@ -196,17 +212,17 @@ def test_with_db(db, sample_channel_data):
     assert channel_id > 0
 ```
 
-### 3. Добавьте маркеры
+### 3. Add Markers
 
 ```python
-@pytest.mark.unit  # или integration, api, slow
+@pytest.mark.unit  # or integration, api, slow
 def test_something():
     pass
 ```
 
-## Моки для YouTube API
+## YouTube API Mocks
 
-Пример мокирования API ответа:
+Example of mocking API response:
 
 ```python
 def test_get_subscriptions(youtube_api):
@@ -218,35 +234,34 @@ def test_get_subscriptions(youtube_api):
             }
         }]
     }
-    
+
     mock_request = Mock()
     mock_request.execute.return_value = mock_response
     youtube_api.service.subscriptions().list.return_value = mock_request
-    
+
     subscriptions = youtube_api.get_subscriptions()
-    
     assert len(subscriptions) == 1
 ```
 
 ## Troubleshooting
 
-### Ошибка: "No module named 'src'"
+### Error: "No module named 'src'"
 
-Убедитесь, что запускаете pytest из корня проекта.
+Make sure you're running pytest from the project root.
 
-### Ошибка: "fixture not found"
+### Error: "fixture not found"
 
-Проверьте, что `conftest.py` находится в папке `tests/`.
+Check that `conftest.py` is in the `tests/` folder.
 
-### Тесты миграций падают
+### Migration tests failing
 
-Убедитесь, что папка `migrations/` содержит все файлы миграций.
+Make sure the `migrations/` folder contains all migration files.
 
 ## Best Practices
 
-1. **Arrange-Act-Assert** паттерн
-2. **Один assert на тест** (где возможно)
-3. **Описательные имена** тестов
-4. **Изолированные тесты** - не зависят друг от друга
-5. **Быстрые тесты** - используйте моки для внешних зависимостей
-6. **Тестируйте edge cases** - пустые данные, null, ошибки
+1. **Arrange-Act-Assert** pattern
+2. **One assert per test** (where possible)
+3. **Descriptive test names**
+4. **Isolated tests** - don't depend on each other
+5. **Fast tests** - use mocks for external dependencies
+6. **Test edge cases** - empty data, null, errors

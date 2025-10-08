@@ -11,49 +11,53 @@ import argparse
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from migrations.migration_manager import MigrationManager, create_migration_template
+from locales.i18n import t, load_locale_from_config
+
+# Загружаем локаль из настроек
+load_locale_from_config()
 
 
 def migrate_up(manager: MigrationManager, target_version: int = None, auto_yes: bool = False):
     """Применить миграции"""
-    print("\n" + "=" * 60)
-    print("Применение миграций")
-    print("=" * 60)
-    
+    print(f"\n{'=' * 60}")
+    print(t('migrations.apply_migrations'))
+    print('=' * 60)
+
     pending = manager.get_pending_migrations()
-    
+
     if not pending:
-        print("\n✅ База данных актуальна, миграции не требуются")
+        print(f"\n✅ {t('migrations.up_to_date')}")
         return
-    
+
     if target_version:
         pending = [(v, f) for v, f in pending if v <= target_version]
-        print(f"\nЦелевая версия: {target_version}")
+        print(f"\n{t('migrations.target_version', version=target_version)}")
     else:
-        print(f"\nБудет применено {len(pending)} миграций")
-    
+        print(f"\n{t('migrations.will_apply', count=len(pending))}")
+
     for version, filename in pending:
         migration_name = filename.replace('.py', '').replace(f'{version:03d}_', '')
         print(f"  [{version}] {migration_name}")
-    
+
     if not auto_yes:
         print()
-        confirm = input("Продолжить? (yes/no): ").strip().lower()
-        
+        confirm = input(f"{t('migrations.confirm')}: ").strip().lower()
+
         if confirm != 'yes':
-            print("❌ Отменено")
+            print(f"❌ {t('migrations.cancelled')}")
             return
     else:
-        print("\n[Автоматическое подтверждение включено]")
-    
+        print(f"\n{t('migrations.auto_confirm')}")
+
     success, total = manager.migrate(target_version)
-    
-    print("\n" + "=" * 60)
+
+    print(f"\n{'=' * 60}")
     if success == total:
-        print(f"✅ Успешно применено {success} миграций")
+        print(f"✅ {t('migrations.success', count=success)}")
     else:
-        print(f"⚠️  Применено {success} из {total} миграций")
-        print("Проверьте ошибки выше")
-    print("=" * 60)
+        print(f"⚠️  {t('migrations.partial', success=success, total=total)}")
+        print(t('migrations.check_errors'))
+    print('=' * 60)
 
 
 def show_status(manager: MigrationManager):
@@ -63,13 +67,13 @@ def show_status(manager: MigrationManager):
 
 def create_new_migration(name: str):
     """Создать новую миграцию"""
-    print("\n" + "=" * 60)
-    print("Создание новой миграции")
-    print("=" * 60)
-    
+    print(f"\n{'=' * 60}")
+    print(t('migrations.creating_migration'))
+    print('=' * 60)
+
     create_migration_template(name)
-    
-    print("\n" + "=" * 60)
+
+    print(f"\n{'=' * 60}")
 
 
 def main():
@@ -123,7 +127,7 @@ if __name__ == '__main__':
         print("\n\n⚠️  Прервано пользователем")
         sys.exit(0)
     except Exception as e:
-        print(f"\n❌ Ошибка: {e}")
+        print(f"\n❌ {t('common.error')}: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)

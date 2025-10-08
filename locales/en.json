@@ -30,10 +30,33 @@
     "channel_added": "Channel '{name}' added (ID: {id})",
     "all_done": "All channels successfully configured!",
     "next_step": "Now you can load subscriptions. Run:",
-    "no_channels": "No channels were added."
+    "no_channels": "No channels were added.",
+    "instructions_title": "To get started you need to:",
+    "db_initialized": "Database initialized.",
+    "channels_found": "Found {count} configured channels",
+    "choose_action": "Choose an action",
+    "your_choice": "Your choice ({min}-{max})",
+    "not_found": "file not found",
+    "adding_channels_title": "Adding New Personal Channels",
+    "channels_input": "Quantity: ",
+    "invalid_count": "Invalid number",
+    "invalid_range": "Quantity must be from 1 to 20",
+    "saving_channels_title": "Saving channels to database...",
+    "all_channels_setup": "All channels successfully configured!",
+    "run_sync_hint": "Now you can load subscriptions. Run: python src/sync_subscriptions.py",
+    "channel_progress": "Channel {current} of {total}",
+    "channel_color": "Color for channel: {color}",
+    "name_required": "Name cannot be empty. Skipping...",
+    "setup_incomplete": "No channels were added.",
+    "update_channels_title": "Updating Existing Channels Subscriptions",
+    "auth_success_general": "Authorization successful",
+    "loading_subs": "Loading subscriptions...",
+    "subs_found": "Found {count} subscriptions",
+    "subs_updated": "Subscriptions updated for '{channel}'",
+    "update_complete": "Update complete!"
   },
   
-  "sync": {
+    "sync": {
     "title": "Sync Subscriptions and Videos",
     "channels_found": "Found {count} personal channels",
     "loading_subscriptions": "Loading subscriptions from YouTube...",
@@ -46,7 +69,8 @@
     "processing_subscriptions": "Processing {count} subscriptions...",
     "progress": "Processed {current}/{total} subscriptions...",
     "new_videos_found": "Found {count} new videos for '{channel}'",
-    "sync_complete": "Synchronization complete!",
+    "sync_complete": "Synchronization of '{channel}' complete",
+    "sync_channel": "Synchronization: {name}",
     "total_new_videos": "Total new videos: {count}",
     "errors_found": "Found {count} errors during synchronization:",
     "error_details": "Details available in admin panel"
@@ -127,9 +151,20 @@
     "partial": "Applied {success} of {total} migrations",
     "check_errors": "Check errors above",
     "up_to_date": "Database is up to date, no migrations needed",
-    "auto_confirm": "[Auto-confirm enabled]"
+    "auto_confirm": "[Auto-confirm enabled]",
+    "apply_migrations": "Applying Migrations",
+    "target_version": "Target version: {version}",
+    "will_apply": "Will apply {count} migrations",
+    "creating_migration": "Creating New Migration",
+    "applying_migration": "Applying migration {version}: {filename}",
+    "migration_missing_upgrade": "Migration {filename} does not contain upgrade() function",
+    "migration_applied": "Migration {version} successfully applied",
+    "migration_apply_error": "Error applying migration {version}: {error}",
+    "migration_load_error": "Error loading migration {filename}: {error}",
+    "migration_interrupted": "Migration interrupted due to error",
+    "migration_already_exists": "Migration {filename} already exists"
   },
-  
+
   "stats": {
     "title": "Statistics",
     "total_channels": "Total personal channels: {count}",
@@ -143,5 +178,51 @@
     "exit": "Exit",
     "your_choice": "Your choice ({min}-{max}):",
     "invalid_choice": "Invalid choice"
+  },
+
+  "tests": {
+    "running_command": "Running: {command}",
+    "all_passed": "All tests passed!",
+    "report_location": "Coverage report: htmlcov/index.html",
+    "some_failed": "Some tests failed"
+  },
+
+  "setup_check": {
+    "checking_dependencies": "Checking dependencies...",
+    "dependencies_ok": "All dependencies installed!",
+    "missing_modules": "Missing modules: {modules}",
+    "install_dependencies": "Run: pip install -r requirements.txt",
+    "checking_structure": "Checking project structure...",
+    "creating_directory": "Creating directory: {directory}",
+    "structure_ok": "Project structure ready!",
+    "checking_credentials": "Checking credentials...",
+    "credentials_ok": "Credentials found!",
+    "credentials_missing": "{file} not found",
+    "instructions_title": "You need to:",
+    "oauth_steps": "1. Go to https://console.cloud.google.com/",
+    "oauth_project": "2. Create a project",
+    "oauth_api": "3. Enable YouTube Data API v3",
+    "oauth_credentials": "4. Create OAuth 2.0 credentials (Desktop app)",
+    "oauth_download": "5. Download JSON and save as config/client_secrets.json",
+    "oauth_details": "See details in README.md",
+    "checking_database": "Checking database...",
+    "db_initialized": "Database initialized",
+    "channels_count": "Configured channels: {count}",
+    "channel_videos": "- {name}: {count} videos",
+    "database_ok": "Database working!",
+    "database_error": "Error: {error}",
+    "database_problem": "Database problem!",
+    "title": "YouTube Dashboard - Setup Check",
+    "check_complete": "Everything is ready to work!",
+    "next_channels": "Next steps:",
+    "run_setup_channels": "1. python setup_channels.py  - Setup personal channels",
+    "run_sync": "2. python sync_subscriptions.py  - Load subscriptions",
+    "almost_ready": "Almost ready!",
+    "need_credentials": "You need to create OAuth credentials:",
+    "see_readme": "See instructions in README.md",
+    "credentials_ready": "Credentials are ready, but channels not configured",
+    "run_setup": "Run: python setup_channels.py",
+    "fix_errors": "Fix errors first",
+    "check_errors": "See messages above"
   }
 }

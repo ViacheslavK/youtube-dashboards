@@ -13,6 +13,10 @@ sys.path.insert(0, project_root)
 
 from src.db_manager import Database
 from src.youtube_api import YouTubeAPI, setup_new_channel
+from locales.i18n import t, load_locale_from_config
+
+# Загружаем локаль из настроек
+load_locale_from_config()
 
 
 COLORS = [
@@ -33,14 +37,14 @@ COLORS = [
 
 def main():
     print("=" * 60)
-    print("YouTube Dashboard - Настройка личных каналов")
+    print(f"{t('app.name')} - {t('setup.title')}")
     print("=" * 60)
-    
+
     # Проверяем наличие credentials
     credentials_file = 'config/client_secrets.json'
     if not os.path.exists(credentials_file):
-        print("\n❌ ОШИБКА: Файл client_secrets.json не найден!")
-        print("\nДля начала работы необходимо:")
+        print(f"\n❌ {t('common.error').upper()}: client_secrets.json {t('app.not_found')}")
+        print(f"\n{t('setup.instructions_title')}:")
         print("1. Зайти в Google Cloud Console: https://console.cloud.google.com/")
         print("2. Создать новый проект или выбрать существующий")
         print("3. Включить YouTube Data API v3")
@@ -55,22 +59,22 @@ def main():
     
     # Инициализируем БД
     db = Database()
-    
-    print("\nБаза данных инициализирована.")
-    
+
+    print(f"\n{t('setup.db_initialized')}")
+
     # Проверяем существующие каналы
     existing_channels = db.get_all_personal_channels()
     if existing_channels:
-        print(f"\n📺 Найдено {len(existing_channels)} настроенных каналов:")
+        print(f"\n📺 {t('setup.channels_found', count=len(existing_channels))}")
         for ch in existing_channels:
             print(f"  - {ch['name']} (ID: {ch['id']})")
-        
-        print("\nВыберите действие:")
+
+        print(f"\n{t('setup.choose_action')}:")
         print("1. Добавить новый канал")
         print("2. Обновить существующие каналы")
         print("3. Выход")
-        
-        choice = input("\nВаш выбор (1-3): ").strip()
+
+        choice = input(f"\n{t('setup.your_choice', min=1, max=3)}: ").strip()
         
         if choice == '3':
             sys.exit(0)
@@ -84,56 +88,56 @@ def main():
 
 def add_new_channels(db: Database):
     """Добавление новых личных каналов"""
-    print("\n" + "=" * 60)
-    print("Добавление новых личных каналов")
-    print("=" * 60)
-    
-    print("\nСколько личных каналов вы хотите добавить?")
+    print(f"\n{'=' * 60}")
+    print(t('setup.adding_channels_title'))
+    print('=' * 60)
+
+    print(f"\n{t('setup.channels_count')}")
     print("(У вас 12 каналов, но активно используете 7)")
-    
+
     try:
-        count = int(input("Количество каналов: ").strip())
+        count = int(input(t('setup.channels_input')).strip())
     except ValueError:
-        print("❌ Некорректное число")
+        print(f"❌ {t('setup.invalid_count')}")
         return
-    
+
     if count <= 0 or count > 20:
-        print("❌ Количество должно быть от 1 до 20")
+        print(f"❌ {t('setup.invalid_range')}")
         return
     
     channels_data = []
     
     for i in range(count):
         print(f"\n{'=' * 60}")
-        print(f"Канал {i + 1} из {count}")
+        print(f"{t('setup.channel_progress', current=i+1, total=count)}")
         print('=' * 60)
-        
-        name = input(f"Название канала (например, 'Технологии', 'Музыка'): ").strip()
+
+        name = input(f"{t('setup.channel_name')}: ").strip()
         if not name:
-            print("❌ Название не может быть пустым. Пропускаем...")
+            print(f"❌ {t('setup.name_required')}")
             continue
-        
+
         # Выбираем цвет
         color = COLORS[i % len(COLORS)]
-        print(f"Цвет для канала: {color}")
-        
+        print(f"{t('setup.channel_color', color=color)}")
+
         try:
             # Авторизация через OAuth
             channel_info = setup_new_channel(name, 'config/client_secrets.json')
             channel_info['color'] = color
             channels_data.append(channel_info)
-            
+
         except Exception as e:
-            print(f"❌ Ошибка при настройке канала: {e}")
-            print("Пропускаем этот канал...")
+            print(f"❌ {t('setup.auth_error', error=str(e))}")
+            print(t('setup.skip_channel'))
             continue
     
     # Сохраняем в БД
     if channels_data:
         print(f"\n{'=' * 60}")
-        print("Сохранение каналов в базу данных...")
+        print(t('setup.saving_channels_title'))
         print('=' * 60)
-        
+
         for i, ch_data in enumerate(channels_data, 1):
             channel_id = db.add_personal_channel(
                 name=ch_data['name'],
@@ -142,35 +146,34 @@ def add_new_channels(db: Database):
                 color=ch_data['color'],
                 order_position=i
             )
-            print(f"✓ Канал '{ch_data['name']}' добавлен (ID: {channel_id})")
-        
-        print("\n✅ Все каналы успешно настроены!")
-        print("\nТеперь можно загрузить подписки. Запустите:")
-        print("  python sync_subscriptions.py")
+            print(f"✓ {t('setup.channel_added', name=ch_data['name'], id=channel_id)}")
+
+        print(f"\n✅ {t('setup.all_channels_setup')}")
+        print(f"\n{t('setup.run_sync_hint')}")
     else:
-        print("\n⚠️  Ни один канал не был добавлен.")
+        print(f"\n⚠️  {t('setup.setup_incomplete')}")
 
 
 def update_existing_channels(db: Database, channels: list):
     """Обновление подписок для существующих каналов"""
-    print("\n" + "=" * 60)
-    print("Обновление подписок для существующих каналов")
-    print("=" * 60)
-    
+    print(f"\n{'=' * 60}")
+    print(t('setup.update_channels_title'))
+    print('=' * 60)
+
     for channel in channels:
-        print(f"\n--- Обновление: {channel['name']} ---")
-        
+        print(f"\n--- {t('setup.updating_channel', name=channel['name'])} ---")
+
         try:
             api = YouTubeAPI('config/client_secrets.json')
             api.authenticate(channel['oauth_token_path'])
-            
-            print("✓ Авторизация успешна")
-            
+
+            print(f"✓ {t('setup.auth_success_general')}")
+
             # Получаем подписки
-            print("Загрузка подписок...")
+            print(t('setup.loading_subs'))
             subscriptions = api.get_subscriptions()
-            print(f"Найдено {len(subscriptions)} подписок")
-            
+            print(t('setup.subs_found', count=len(subscriptions)))
+
             # Сохраняем в БД
             for sub in subscriptions:
                 db.add_subscription(
@@ -179,14 +182,14 @@ def update_existing_channels(db: Database, channels: list):
                     channel_name=sub['channel_name'],
                     channel_thumbnail=sub['thumbnail']
                 )
-            
-            print(f"✓ Подписки обновлены для '{channel['name']}'")
-            
+
+            print(t('setup.subs_updated', channel=channel['name']))
+
         except Exception as e:
-            print(f"❌ Ошибка при обновлении канала '{channel['name']}': {e}")
+            print(f"❌ {t('setup.update_error', name=channel['name'], error=str(e))}")
             continue
-    
-    print("\n✅ Обновление завершено!")
+
+    print(f"\n✅ {t('setup.update_complete')}")
 
 
 if __name__ == '__main__':
