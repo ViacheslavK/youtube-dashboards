@@ -1,7 +1,7 @@
 """
 YouTube Dashboard - Utilities
 
-Административные утилиты и инструменты
+Administrative utilities and tools
 """
 
 __all__ = []

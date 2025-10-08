@@ -68,7 +68,11 @@
     "videos": "Видео",
     "unwatched": "Не просмотрено",
     "no_channels": "Нет настроенных каналов",
-    "setup_prompt": "Запустите: python src/setup_channels.py"
+    "setup_prompt": "Запустите: python src/setup_channels.py",
+    "translated_channel_color": "Цвет: {color}",
+    "translated_subscriptions": "Подписок: {count}",
+    "translated_videos": "Видео: {total} (не просмотрено: {unviewed})",
+    "authuser_index": "authuser индекс: {index}"
   },
   
   "subscriptions": {
@@ -102,7 +106,8 @@
     "delete_cancelled": "❌ Отменено",
     "deactivated_since": "с {date}",
     "delete_from_history": "Удалить из истории",
-    "deleted_count": "Удалено из истории: {count} подписок"
+    "deleted_count": "Удалено из истории: {count} подписок",
+    "more_subs": "... и ещё {count}"
   },
   
   "videos": {
@@ -117,7 +122,9 @@
     "mark_watched": "Отметить просмотренным",
     "clear_watched": "Очистить просмотренные",
     "no_videos": "Нет видео",
-    "recent_videos": "Последние {count} видео"
+    "recent_videos": "Последние {count} видео",
+    "channel": "Канал: {channel}",
+    "published_duration": "Опубликовано: {date} | Длительность: {duration}"
   },
   
   "errors": {

@@ -1,33 +1,31 @@
 #!/usr/bin/env python3
 """
-Просмотр статистики по загруженным данным
+View statistics for loaded data
 """
 
-import sys
 import os
+import sys
 
-# Добавляем корневую папку проекта в путь
+# Add project root to path
 # __file__ = D:\...\utils\view_stats.py
-# dirname = D:\...\utils
-# dirname(dirname) = D:\...\youtube-dashboard-claude
 current_dir = os.path.dirname(os.path.abspath(__file__))  # utils/
-project_root = os.path.dirname(current_dir)  # корень проекта
+project_root = os.path.dirname(current_dir)  # project root
 sys.path.insert(0, project_root)
 
 from src.db_manager import Database
-from locales import t, load_locale_from_config
+from locales.i18n import t, load_locale_from_config
 
-# Загружаем локаль из настроек
+# Load locale from settings
 load_locale_from_config()
 
 
 def view_channels_stats():
-    """Статистика по каналам"""
+    """Channel statistics"""
     db = Database()
     
     channels = db.get_all_personal_channels()
     print(f"\n{'=' * 80}")
-    print(f"Всего личных каналов: {len(channels)}")
+    print(t('channels.count', count=len(channels)))
     print('=' * 80)
     
     if not channels:
@@ -46,12 +44,12 @@ def view_channels_stats():
         
         print(f"\n📺 {ch['name']} (ID: {ch['id']})")
         print(f"   YouTube Channel: {ch['youtube_channel_id']}")
-        print(f"   Цвет: {ch['color']}")
-        print(f"   Подписок: {len(subs)}")
-        print(f"   Видео: {len(videos)} (не просмотрено: {len(unwatched)})")
-        
+        print(t('channels.translated_channel_color', color=ch['color']))
+        print(t('channels.translated_subscriptions', count=len(subs)))
+        print(t('channels.translated_videos', total=len(videos), unviewed=len(unwatched)))
+
         if ch['authuser_index'] is not None:
-            print(f"   authuser индекс: {ch['authuser_index']}")
+            print(t('channels.authuser_index', index=ch['authuser_index']))
         
         total_videos += len(videos)
         total_subscriptions += len(subs)
@@ -66,54 +64,54 @@ def view_channels_stats():
 
 
 def view_recent_videos(limit: int = 20):
-    """Показать последние видео"""
+    """Show recent videos"""
     db = Database()
     channels = db.get_all_personal_channels()
-    
+
     if not channels:
-        print("\n⚠️  Нет настроенных каналов")
+        print(f"\n⚠️  {t('channels.no_channels')}")
         return
-    
+
     print(f"\n{'=' * 80}")
-    print(f"Последние {limit} видео")
+    print(t('videos.recent_videos', count=limit))
     print('=' * 80)
-    
+
     all_videos = []
     for ch in channels:
         videos = db.get_videos_by_personal_channel(ch['id'], include_watched=True)
         for v in videos:
             v['personal_channel_name'] = ch['name']
         all_videos.extend(videos)
-    
-    # Сортируем по дате публикации
+
+    # Sort by publication date
     all_videos.sort(key=lambda x: x['published_at'], reverse=True)
     
     for v in all_videos[:limit]:
         watched = "✓" if v['is_watched'] else "📹"
         print(f"\n{watched} [{v['personal_channel_name']}] {v['title']}")
-        print(f"   Канал: {v['channel_name']}")
-        print(f"   Дата: {v['published_at'][:10]} | Длина: {v['duration']}")
+        print(t('videos.channel', channel=v['channel_name']))
+        print(t('videos.published_duration', date=v['published_at'][:10], duration=v['duration']))
 
 
 def view_subscriptions():
-    """Показать все подписки"""
+    """Show all subscriptions"""
     db = Database()
     channels = db.get_all_personal_channels()
-    
+
     print(f"\n{'=' * 80}")
-    print("Подписки по каналам")
+    print(t('subscriptions.title'))
     print('=' * 80)
-    
+
     for ch in channels:
         subs = db.get_subscriptions_by_channel(ch['id'], include_inactive=False)
-        
+
         if subs:
-            print(f"\n📺 {ch['name']}: {len(subs)} подписок")
+            print(f"\n📺 {ch['name']}: {len(subs)} {t('subscriptions.active')}")
             for i, sub in enumerate(subs[:10], 1):
                 print(f"   {i}. {sub['channel_name']}")
-            
+
             if len(subs) > 10:
-                print(f"   ... и ещё {len(subs) - 10}")
+                print(f"   ... {t('subscriptions.more_subs', count=len(subs) - 10)}")
 
 
 def main():

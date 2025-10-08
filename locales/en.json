@@ -85,7 +85,11 @@
     "videos": "Videos",
     "unwatched": "Unwatched",
     "no_channels": "No configured channels",
-    "setup_prompt": "Run: python src/setup_channels.py"
+    "setup_prompt": "Run: python src/setup_channels.py",
+    "translated_channel_color": "Color: {color}",
+    "translated_subscriptions": "Subscriptions: {count}",
+    "translated_videos": "Videos: {total} (unwatched: {unviewed})",
+    "authuser_index": "authuser index: {index}"
   },
   
   "subscriptions": {
@@ -98,7 +102,8 @@
     "no_inactive": "No inactive subscriptions!",
     "deactivated_since": "since {date}",
     "delete_from_history": "Delete from history",
-    "deleted_count": "Deleted from history: {count} subscriptions"
+    "deleted_count": "Deleted from history: {count} subscriptions",
+    "more_subs": "... and {count} more"
   },
   
   "videos": {
@@ -113,7 +118,9 @@
     "mark_watched": "Mark as watched",
     "clear_watched": "Clear watched",
     "no_videos": "No videos",
-    "recent_videos": "Recent {count} videos"
+    "recent_videos": "Recent {count} videos",
+    "channel": "Channel: {channel}",
+    "published_duration": "Published: {date} | Duration: {duration}"
   },
   
   "errors": {
