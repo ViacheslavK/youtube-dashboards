@@ -12,22 +12,6 @@ tests/
 └── test_utils.py            # Utilities tests
 ```
 
----
-
-## Тесты YouTube Dashboard
-
-## Структура
-
-```sh
-tests/
-├── __init__.py
-├── conftest.py              # Общие фикстуры
-├── test_db_manager.py       # Тесты базы данных
-├── test_youtube_api.py      # Тесты YouTube API (моки)
-├── test_migrations.py       # Тесты системы миграций
-└── test_utils.py            # Тесты утилит
-```
-
 ## Dependencies Installation
 
 ```bash
