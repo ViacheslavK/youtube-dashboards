@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Скрипт для запуска тестов с различными опциями
+Script for running tests with different options.
 """
 
 import sys
@@ -8,21 +8,21 @@ import subprocess
 import argparse
 import os
 
-# Добавляем путь к проекту
+# Add project path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from locales.i18n import t, load_locale_from_config
 
-# Загружаем локаль из настроек
+# Load locale from settings
 load_locale_from_config()
 
 
 def run_tests(test_type='all', coverage=False, verbose=False):
-    """Запуск тестов с заданными параметрами"""
+    """Runs tests with the specified parameters."""
     
     cmd = ['pytest']
     
-    # Тип тестов
+    # Test type
     if test_type == 'unit':
         cmd.extend(['-m', 'unit'])
     elif test_type == 'integration':
@@ -58,7 +58,7 @@ def run_tests(test_type='all', coverage=False, verbose=False):
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Запуск тестов YouTube Dashboard'
+        description='Run YouTube Dashboard tests'
     )
     
     parser.add_argument(
@@ -66,19 +66,19 @@ def main():
         nargs='?',
         default='all',
         choices=['all', 'unit', 'integration', 'api'],
-        help='Тип тестов для запуска (по умолчанию: all)'
+        help='Type of tests to run (default: all)'
     )
     
     parser.add_argument(
         '-c', '--coverage',
         action='store_true',
-        help='Включить coverage отчёт'
+        help='Enable coverage report'
     )
     
     parser.add_argument(
         '-v', '--verbose',
         action='store_true',
-        help='Детальный вывод'
+        help='Verbose output'
     )
     
     args = parser.parse_args()
@@ -90,5 +90,5 @@ if __name__ == '__main__':
     try:
         main()
     except KeyboardInterrupt:
-        print("\n\n⚠️  Прервано пользователем")
+        print("\n\n⚠️  Interrupted by user")
         sys.exit(0)

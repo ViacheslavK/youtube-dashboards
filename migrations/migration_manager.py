@@ -1,5 +1,5 @@
 """
-Система управления миграциями базы данных
+Database migration management system.
 """
 
 import sqlite3
@@ -9,16 +9,16 @@ from typing import List, Tuple
 from datetime import datetime
 from locales.i18n import t, load_locale_from_config
 
-# Загружаем локаль из настроек
+# Load locale from settings
 load_locale_from_config()
 
 
 class MigrationManager:
-    """Менеджер миграций базы данных"""
+    """Database migration manager."""
     
     def __init__(self, db_path: str = "database/videos.db"):
         self.db_path = db_path
-        # Создаём папку для БД, если её нет
+        # Create the folder for the database if it doesn't exist
         os.makedirs(os.path.dirname(db_path), exist_ok=True)
         self.migrations_dir = os.path.join(
             os.path.dirname(os.path.abspath(__file__))
@@ -26,7 +26,7 @@ class MigrationManager:
         self._ensure_schema_version_table()
     
     def _ensure_schema_version_table(self):
-        """Создать таблицу для отслеживания версий"""
+        """Create a table to track versions."""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         
@@ -42,7 +42,7 @@ class MigrationManager:
         conn.close()
     
     def get_current_version(self) -> int:
-        """Получить текущую версию схемы БД"""
+        """Get the current database schema version."""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         
@@ -54,7 +54,7 @@ class MigrationManager:
     
     def get_available_migrations(self) -> List[Tuple[int, str]]:
         """
-        Получить список доступных миграций
+        Get a list of available migrations.
         
         Returns:
             List of (version, filename) tuples
@@ -63,28 +63,28 @@ class MigrationManager:
         
         for filename in os.listdir(self.migrations_dir):
             if filename.endswith('.py') and filename[0].isdigit():
-                # Формат: 001_migration_name.py
+                # Format: 001_migration_name.py
                 try:
                     version = int(filename.split('_')[0])
                     migrations.append((version, filename))
                 except ValueError:
                     continue
         
-        # Сортируем по версии
+        # Sort by version
         migrations.sort(key=lambda x: x[0])
         return migrations
     
     def get_pending_migrations(self) -> List[Tuple[int, str]]:
-        """Получить миграции, которые нужно применить"""
+        """Get migrations that need to be applied."""
         current_version = self.get_current_version()
         all_migrations = self.get_available_migrations()
         
-        # Фильтруем только те, что больше текущей версии
+        # Filter only those that are greater than the current version
         pending = [(v, f) for v, f in all_migrations if v > current_version]
         return pending
     
     def load_migration(self, filename: str):
-        """Загрузить модуль миграции"""
+        """Load a migration module."""
         file_path = os.path.join(self.migrations_dir, filename)
         
         spec = importlib.util.spec_from_file_location("migration", file_path)
@@ -95,33 +95,33 @@ class MigrationManager:
     
     def apply_migration(self, version: int, filename: str) -> bool:
         """
-        Применить одну миграцию
+        Apply a single migration.
         
         Returns:
-            True если успешно, False если ошибка
+            True if successful, False if there is an error.
         """
         try:
             print(f"\n{'─' * 60}")
             print(t('migrations.applying_migration', version=version, filename=filename))
             print('─' * 60)
             
-            # Загружаем модуль миграции
+            # Load the migration module
             module = self.load_migration(filename)
             
-            # Получаем функцию upgrade
+            # Get the upgrade function
             if not hasattr(module, 'upgrade'):
                 print(f"❌ {t('migrations.migration_missing_upgrade', filename=filename)}")
                 return False
             
-            # Применяем миграцию
+            # Apply the migration
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
             
             try:
-                # Выполняем upgrade
+                # Execute the upgrade
                 module.upgrade(cursor)
                 
-                # Записываем версию
+                # Record the version
                 migration_name = filename.replace('.py', '').replace(f'{version:03d}_', '')
                 cursor.execute('''
                     INSERT INTO schema_version (version, name)
@@ -145,13 +145,13 @@ class MigrationManager:
     
     def migrate(self, target_version: int = None) -> Tuple[int, int]:
         """
-        Применить все необходимые миграции
+        Apply all necessary migrations.
         
         Args:
-            target_version: Целевая версия (None = последняя)
+            target_version: The target version (None = latest).
             
         Returns:
-            (успешных_миграций, общее_количество)
+            (successful_migrations, total_migrations)
         """
         pending = self.get_pending_migrations()
         
@@ -167,14 +167,14 @@ class MigrationManager:
             if self.apply_migration(version, filename):
                 success_count += 1
             else:
-                # Останавливаемся при первой ошибке
+                # Stop on the first error
                 print(f"\n⚠️  {t('migrations.migration_interrupted')}")
                 break
         
         return (success_count, len(pending))
     
     def get_migration_history(self) -> List[dict]:
-        """Получить историю применённых миграций"""
+        """Get the history of applied migrations."""
         conn = sqlite3.connect(self.db_path)
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
@@ -190,7 +190,7 @@ class MigrationManager:
         return history
     
     def print_status(self):
-        """Вывести статус миграций"""
+        """Print the migration status."""
         current_version = self.get_current_version()
         pending = self.get_pending_migrations()
         all_migrations = self.get_available_migrations()
@@ -208,7 +208,7 @@ class MigrationManager:
                 migration_name = filename.replace('.py', '').replace(f'{version:03d}_', '')
                 print(f"  [{version}] {migration_name}")
 
-        # История
+        # History
         history = self.get_migration_history()
         if history:
             print(f"\n{t('migrations.applied_list')}")
@@ -222,21 +222,21 @@ class MigrationManager:
 
 def create_migration_template(name: str, version: int = None):
     """
-    Создать шаблон новой миграции
+    Create a new migration template.
     
     Args:
-        name: Название миграции (например, "add_user_settings")
-        version: Номер версии (если None - автоматически следующий)
+        name: The name of the migration (e.g., "add_user_settings").
+        version: The version number (if None, the next available version is used).
     """
     migrations_dir = os.path.dirname(os.path.abspath(__file__))
     
-    # Определяем версию
+    # Determine the version
     if version is None:
         manager = MigrationManager()
         all_migrations = manager.get_available_migrations()
         version = max([v for v, _ in all_migrations], default=0) + 1
     
-    # Формируем имя файла
+    # Format the filename
     filename = f"{version:03d}_{name}.py"
     filepath = os.path.join(migrations_dir, filename)
     
@@ -244,28 +244,28 @@ def create_migration_template(name: str, version: int = None):
         print(f"❌ {t('migrations.migration_already_exists', filename=filename)}")
         return
     
-    # Шаблон миграции
+    # Migration template
     template = f'''"""
-Миграция {version}: {name.replace('_', ' ').title()}
+Migration {version}: {name.replace('_', ' ').title()}
 
-Создано: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+Created: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 """
 
 
 def upgrade(cursor):
     """
-    Применение миграции
+    Applies the migration.
     
     Args:
         cursor: SQLite cursor
     """
-    # Пример: добавление нового поля
+    # Example: add a new field
     # cursor.execute(\'\'\'
     #     ALTER TABLE table_name 
     #     ADD COLUMN new_column TEXT DEFAULT 'default_value'
     # \'\'\')
     
-    # Пример: создание новой таблицы
+    # Example: create a new table
     # cursor.execute(\'\'\'
     #     CREATE TABLE IF NOT EXISTS new_table (
     #         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -273,7 +273,7 @@ def upgrade(cursor):
     #     )
     # \'\'\')
     
-    # Пример: создание индекса
+    # Example: create an index
     # cursor.execute(\'\'\'
     #     CREATE INDEX IF NOT EXISTS idx_table_column 
     #     ON table_name(column_name)
@@ -284,17 +284,17 @@ def upgrade(cursor):
 
 def downgrade(cursor):
     """
-    Откат миграции (опционально, для будущего)
+    Reverts the migration (optional, for future use).
     
     Args:
         cursor: SQLite cursor
     """
-    # SQLite не поддерживает DROP COLUMN, поэтому откат сложен
-    # Обычно не используется, но можно реализовать через пересоздание таблицы
+    # SQLite does not support DROP COLUMN, so rollback is complicated.
+    # Usually not used, but can be implemented by recreating the table.
     pass
 '''
     
-    # Сохраняем файл
+    # Save the file
     with open(filepath, 'w', encoding='utf-8') as f:
         f.write(template)
     

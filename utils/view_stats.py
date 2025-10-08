@@ -120,10 +120,10 @@ def main():
     print("=" * 80)
     
     print(f"\n{t('menu.choose_action')}")
-    print(f"1. {t('stats.title')} - по каналам")
+    print(f"1. {t('stats.title')} - by channel")
     print(f"2. {t('videos.recent_videos', count=20)}")
     print(f"3. {t('videos.recent_videos', count=50)}")
-    print(f"4. {t('subscriptions.title')} - список")
+    print(f"4. {t('subscriptions.title')} - list")
     print(f"5. {t('menu.exit')}")
     
     choice = input(f"\n{t('menu.your_choice', min=1, max=5)} ").strip()
@@ -139,17 +139,17 @@ def main():
     elif choice == '5':
         pass
     else:
-        print("❌ Некорректный выбор")
+        print("❌ Invalid choice")
 
 
 if __name__ == '__main__':
     try:
         main()
     except KeyboardInterrupt:
-        print("\n\n⚠️  Прервано пользователем")
+        print("\n\n⚠️  Interrupted by user")
         sys.exit(0)
     except Exception as e:
-        print(f"\n❌ Ошибка: {e}")
+        print(f"\n❌ Error: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)

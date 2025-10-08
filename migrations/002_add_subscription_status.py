@@ -1,18 +1,18 @@
 """
-Миграция 002: Add Subscription Status
+Migration 002: Add Subscription Status
 
-Добавление полей для отслеживания статуса подписок (активные/неактивные)
+Adds fields for tracking subscription status (active/inactive).
 """
 
 
 def upgrade(cursor):
-    """Применение миграции"""
+    """Applies the migration."""
     
-    # Проверяем, есть ли уже эти поля (для идемпотентности)
+    # Check if these fields already exist (for idempotency)
     cursor.execute("PRAGMA table_info(subscriptions)")
     columns = [col[1] for col in cursor.fetchall()]
     
-    # Добавляем is_active
+    # Add is_active
     if 'is_active' not in columns:
         cursor.execute('''
             ALTER TABLE subscriptions 
@@ -20,7 +20,7 @@ def upgrade(cursor):
         ''')
         print("  [OK] Added field: is_active")
     
-    # Добавляем deleted_by_user
+    # Add deleted_by_user
     if 'deleted_by_user' not in columns:
         cursor.execute('''
             ALTER TABLE subscriptions 
@@ -28,7 +28,7 @@ def upgrade(cursor):
         ''')
         print("  [OK] Added field: deleted_by_user")
     
-    # Добавляем deactivated_at
+    # Add deactivated_at
     if 'deactivated_at' not in columns:
         cursor.execute('''
             ALTER TABLE subscriptions 
@@ -36,7 +36,7 @@ def upgrade(cursor):
         ''')
         print("  [OK] Added field: deactivated_at")
     
-    # Создаём индекс
+    # Create index
     cursor.execute('''
         CREATE INDEX IF NOT EXISTS idx_subscriptions_active 
         ON subscriptions(personal_channel_id, is_active, deleted_by_user)
