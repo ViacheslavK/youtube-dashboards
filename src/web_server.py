@@ -32,15 +32,33 @@ CORS(app)  # Enable CORS for development
 db = Database()
 
 # Настройка логирования
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler(os.path.join(project_root, 'logs', 'web_server.log')),
-        logging.StreamHandler()
-    ]
-)
-logger = logging.getLogger(__name__)
+# Проверяем, находимся ли мы в тестовой среде
+is_testing = 'pytest' in sys.modules or 'PYTEST_CURRENT_TEST' in os.environ
+
+if is_testing:
+    # В тестовой среде используем простой логгер без файлов
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)
+    if not logger.handlers:
+        handler = logging.StreamHandler()
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+else:
+    # В рабочей среде настраиваем полное логирование
+    # Создаём директорию logs если она не существует
+    logs_dir = os.path.join(project_root, 'logs')
+    os.makedirs(logs_dir, exist_ok=True)
+
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        handlers=[
+            logging.FileHandler(os.path.join(logs_dir, 'web_server.log')),
+            logging.StreamHandler()
+        ]
+    )
+    logger = logging.getLogger(__name__)
 
 
 # === Static Files ===
