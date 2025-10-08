@@ -192,8 +192,16 @@ class YouTubeAPI:
             try:
                 # Парсим ISO 8601 duration
                 duration_iso = item['contentDetails'].get('duration', 'PT0S')
-                duration_seconds = int(isodate.parse_duration(duration_iso).total_seconds())
-                duration_formatted = self._format_duration(duration_seconds)
+                
+                # Проверяем на livestream (duration отсутствует или PT0S)
+                if not duration_iso or duration_iso == 'PT0S':
+                    duration_formatted = "LIVE"
+                else:
+                    duration_seconds = int(isodate.parse_duration(duration_iso).total_seconds())
+                    if duration_seconds == 0:
+                        duration_formatted = "LIVE"
+                    else:
+                        duration_formatted = self._format_duration(duration_seconds)
             except (KeyError, ValueError, AttributeError):
                 # Livestream или другой формат
                 duration_formatted = "LIVE"

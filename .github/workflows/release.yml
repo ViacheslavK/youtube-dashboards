@@ -1,0 +1,171 @@
+name: Release
+
+on:
+  push:
+    branches: [ main ]
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  # Сначала запускаем тесты
+  test:
+    name: Run Tests Before Release
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+        cache: 'pip'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+    
+    - name: Run tests
+      run: |
+        pytest --cov=src --cov-report=term -v
+
+  # Создание GitHub Release (только для тегов)
+  create-release:
+    name: Create GitHub Release
+    needs: test
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    
+    permissions:
+      contents: write
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Generate changelog
+      id: changelog
+      run: |
+        # Получаем предыдущий тег
+        PREVIOUS_TAG=$(git describe --abbrev=0 --tags $(git rev-list --tags --skip=1 --max-count=1) 2>/dev/null || echo "")
+        
+        if [ -z "$PREVIOUS_TAG" ]; then
+          # Первый релиз
+          CHANGELOG=$(git log --pretty=format:"- %s (%h)" --no-merges)
+        else
+          # Изменения с предыдущего тега
+          CHANGELOG=$(git log ${PREVIOUS_TAG}..HEAD --pretty=format:"- %s (%h)" --no-merges)
+        fi
+        
+        echo "changelog<<EOF" >> $GITHUB_OUTPUT
+        echo "$CHANGELOG" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+    
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        body: |
+          ## What's Changed
+          
+          ${{ steps.changelog.outputs.changelog }}
+          
+          ## Installation
+          
+          ```bash
+          git clone https://github.com/${{ github.repository }}.git
+          cd youtube-dashboard
+          pip install -r requirements.txt
+          python src/setup_channels.py
+          ```
+          
+          See [README.md](https://github.com/${{ github.repository }}/blob/main/README.md) for full documentation.
+        draft: false
+        prerelease: false
+        generate_release_notes: true
+
+  # Сборка артефактов (опционально)
+  build-artifacts:
+    name: Build Artifacts
+    needs: test
+    runs-on: ${{ matrix.os }}
+    if: startsWith(github.ref, 'refs/tags/v')
+    
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            name: Windows
+            artifact_name: youtube-dashboard-windows.zip
+          - os: ubuntu-latest
+            name: Linux
+            artifact_name: youtube-dashboard-linux.tar.gz
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Create package (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        mkdir youtube-dashboard
+        xcopy /E /I src youtube-dashboard\src
+        xcopy /E /I utils youtube-dashboard\utils
+        xcopy /E /I migrations youtube-dashboard\migrations
+        xcopy /E /I config youtube-dashboard\config
+        copy requirements.txt youtube-dashboard\
+        copy README.md youtube-dashboard\
+        copy QUICKSTART.md youtube-dashboard\
+        7z a ${{ matrix.artifact_name }} youtube-dashboard
+    
+    - name: Create package (Linux)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        mkdir youtube-dashboard
+        cp -r src utils migrations config youtube-dashboard/
+        cp requirements.txt README.md QUICKSTART.md youtube-dashboard/
+        tar -czf ${{ matrix.artifact_name }} youtube-dashboard
+    
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.name }}
+        path: ${{ matrix.artifact_name }}
+        retention-days: 30
+    
+    - name: Upload to release
+      if: startsWith(github.ref, 'refs/tags/v')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: ${{ matrix.artifact_name }}
+
+  # Деплой (если нужно)
+  notify:
+    name: Notify on Success
+    needs: [test, create-release]
+    runs-on: ubuntu-latest
+    if: success() && startsWith(github.ref, 'refs/tags/v')
+    
+    steps:
+    - name: Extract version
+      id: version
+      run: echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+    
+    - name: Success notification
+      run: |
+        echo "✅ Release ${{ steps.version.outputs.version }} created successfully!"
+        echo "🎉 All tests passed and artifacts built."

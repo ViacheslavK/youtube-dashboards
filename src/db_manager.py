@@ -2,11 +2,14 @@ import sqlite3
 from datetime import datetime
 from typing import List, Optional, Dict
 import json
+import os
 
 
 class Database:
     def __init__(self, db_path: str = "database/videos.db"):
         self.db_path = db_path
+        # Создаём папку для БД, если её нет
+        os.makedirs(os.path.dirname(db_path), exist_ok=True)
         self.init_database()
     
     def get_connection(self):

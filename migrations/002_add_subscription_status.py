@@ -18,7 +18,7 @@ def upgrade(cursor):
             ALTER TABLE subscriptions 
             ADD COLUMN is_active BOOLEAN DEFAULT 1
         ''')
-        print("  ✓ Добавлено поле: is_active")
+        print("  [OK] Added field: is_active")
     
     # Добавляем deleted_by_user
     if 'deleted_by_user' not in columns:
@@ -26,7 +26,7 @@ def upgrade(cursor):
             ALTER TABLE subscriptions 
             ADD COLUMN deleted_by_user BOOLEAN DEFAULT 0
         ''')
-        print("  ✓ Добавлено поле: deleted_by_user")
+        print("  [OK] Added field: deleted_by_user")
     
     # Добавляем deactivated_at
     if 'deactivated_at' not in columns:
@@ -34,11 +34,11 @@ def upgrade(cursor):
             ALTER TABLE subscriptions 
             ADD COLUMN deactivated_at TIMESTAMP
         ''')
-        print("  ✓ Добавлено поле: deactivated_at")
+        print("  [OK] Added field: deactivated_at")
     
     # Создаём индекс
     cursor.execute('''
         CREATE INDEX IF NOT EXISTS idx_subscriptions_active 
         ON subscriptions(personal_channel_id, is_active, deleted_by_user)
     ''')
-    print("  ✓ Создан индекс: idx_subscriptions_active")
+    print("  [OK] Created index: idx_subscriptions_active")
