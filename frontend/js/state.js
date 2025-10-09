@@ -90,12 +90,14 @@ document.addEventListener('alpine:init', () => {
             console.log('Refreshing data...');
             this.refreshing = true;
             this.lastRefresh = new Date();
-            this.lastRefreshFormatted = this.formatLastRefresh();
 
             try {
                 // Reload channels and stats
                 await Alpine.store('channels').load();
                 await Alpine.store('stats').load();
+
+                // Update formatted timestamp after refresh
+                this.lastRefreshFormatted = this.formatLastRefresh();
 
                 // Trigger refresh on all channel columns (components will handle their own video loading)
                 // This will be handled by the main app component watching for channel changes
@@ -106,6 +108,8 @@ document.addEventListener('alpine:init', () => {
                 showToast('Failed to refresh data', 'error');
             } finally {
                 this.refreshing = false;
+                // Ensure timestamp is updated even if there was an error
+                this.lastRefreshFormatted = this.formatLastRefresh();
             }
         },
 

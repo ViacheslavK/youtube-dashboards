@@ -133,7 +133,12 @@ class VideoCard {
 
         try {
             // Show loading state
-            const watchBtn = this.element.querySelector('.watch-btn');
+            const watchBtn = this.element?.querySelector('.watch-btn');
+            if (!watchBtn) {
+                console.log('Watch button not found, video may have been removed');
+                return;
+            }
+
             const originalText = watchBtn.innerHTML;
             watchBtn.innerHTML = '<i class="fas fa-spinner fa-spin text-xs"></i> <span>Marking...</span>';
             watchBtn.disabled = true;
@@ -142,32 +147,42 @@ class VideoCard {
             const success = await this.onWatch(this.video.id);
 
             if (success) {
-                // Update UI
+                // Check if element is still in DOM before updating
+                if (!this.element || !this.element.parentNode) {
+                    console.log('Video element removed from DOM during watch operation');
+                    return;
+                }
+
+                // Update UI immediately for better user feedback
                 this.video.is_watched = true;
                 this.element.classList.add('opacity-60');
 
                 // Add watched badge
-                const thumbnail = this.element.querySelector('.video-thumbnail').parentElement;
-                const watchedBadge = document.createElement('div');
-                watchedBadge.className = 'absolute top-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded';
-                watchedBadge.textContent = '✓ Watched';
-                thumbnail.appendChild(watchedBadge);
+                const thumbnail = this.element.querySelector('.video-thumbnail')?.parentElement;
+                if (thumbnail) {
+                    const watchedBadge = document.createElement('div');
+                    watchedBadge.className = 'absolute top-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded';
+                    watchedBadge.textContent = '✓ Watched';
+                    thumbnail.appendChild(watchedBadge);
+                }
 
                 // Update buttons
                 const actionsDiv = this.element.querySelector('.flex.gap-2');
-                actionsDiv.innerHTML = `
-                    <button class="flex-1 bg-blue-500 hover:bg-blue-600 text-white text-sm py-2 px-3 rounded-md transition-colors duration-200 flex items-center justify-center gap-1 open-btn">
-                        <i class="fas fa-external-link-alt text-xs"></i>
-                        <span>Open</span>
-                    </button>
-                    <button class="flex-1 bg-gray-300 text-gray-500 text-sm py-2 px-3 rounded-md cursor-not-allowed flex items-center justify-center gap-1" disabled>
-                        <i class="fas fa-check text-xs"></i>
-                        <span>Watched</span>
-                    </button>
-                `;
+                if (actionsDiv) {
+                    actionsDiv.innerHTML = `
+                        <button class="flex-1 bg-blue-500 hover:bg-blue-600 text-white text-sm py-2 px-3 rounded-md transition-colors duration-200 flex items-center justify-center gap-1 open-btn">
+                            <i class="fas fa-external-link-alt text-xs"></i>
+                            <span>Open</span>
+                        </button>
+                        <button class="flex-1 bg-gray-300 text-gray-500 text-sm py-2 px-3 rounded-md cursor-not-allowed flex items-center justify-center gap-1" disabled>
+                            <i class="fas fa-check text-xs"></i>
+                            <span>Watched</span>
+                        </button>
+                    `;
 
-                // Re-attach event listeners
-                this.attachEventListeners();
+                    // Re-attach event listeners
+                    this.attachEventListeners();
+                }
 
                 showToast('Video marked as watched', 'success');
             } else {
@@ -178,11 +193,13 @@ class VideoCard {
             console.error('Error marking video as watched:', error);
             showToast('Failed to mark video as watched', 'error');
 
-            // Reset button state
-            const watchBtn = this.element.querySelector('.watch-btn');
-            if (watchBtn) {
-                watchBtn.innerHTML = originalText;
-                watchBtn.disabled = false;
+            // Reset button state only if element still exists
+            if (this.element) {
+                const watchBtn = this.element.querySelector('.watch-btn');
+                if (watchBtn) {
+                    watchBtn.innerHTML = originalText;
+                    watchBtn.disabled = false;
+                }
             }
         }
     }
@@ -216,11 +233,28 @@ class VideoCard {
 
     // Update the video data
     updateVideo(newVideoData) {
-        this.video = { ...this.video, ...newVideoData };
-        // Re-render if needed
-        const newElement = this.render();
-        this.element.parentNode.replaceChild(newElement, this.element);
-        this.element = newElement;
+        // Check if element is still in DOM before updating
+        if (!this.element || !this.element.parentNode) {
+            console.warn('Video element no longer in DOM, skipping update');
+            return;
+        }
+
+        // Safely update video data
+        if (newVideoData && typeof newVideoData === 'object') {
+            this.video = { ...this.video, ...newVideoData };
+        }
+
+        try {
+            // Re-render if needed
+            const newElement = this.render();
+            if (this.element.parentNode) {
+                this.element.parentNode.replaceChild(newElement, this.element);
+                this.element = newElement;
+            }
+        } catch (error) {
+            console.error('Error updating video element:', error);
+            // Don't throw - gracefully handle the error
+        }
     }
 
     // Destroy the component

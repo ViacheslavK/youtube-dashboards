@@ -45,6 +45,14 @@ async function initializeApp() {
         }
     });
 
+    // Global function to safely check if value includes substring
+    window.safeIncludes = function(value, searchString) {
+        if (value === null || value === undefined) {
+            return false;
+        }
+        return String(value).includes(searchString);
+    };
+
     // Set up keyboard shortcuts
     setupKeyboardShortcuts();
 
@@ -187,14 +195,39 @@ function focusNextVideo() {
     }
 }
 
+// Column navigation for keyboard shortcuts
+let currentColumnIndex = 0;
+
 function focusPreviousColumn() {
-    // Column navigation logic would go here
-    console.log('Focus previous column');
+    const columns = document.querySelectorAll('.channel-column');
+    if (columns.length === 0) return;
+
+    currentColumnIndex = Math.max(0, currentColumnIndex - 1);
+    focusColumn(columns[currentColumnIndex]);
 }
 
 function focusNextColumn() {
-    // Column navigation logic would go here
-    console.log('Focus next column');
+    const columns = document.querySelectorAll('.channel-column');
+    if (columns.length === 0) return;
+
+    currentColumnIndex = Math.min(columns.length - 1, currentColumnIndex + 1);
+    focusColumn(columns[currentColumnIndex]);
+}
+
+function focusColumn(column) {
+    // Remove focus from all videos
+    document.querySelectorAll('.video-card.focused').forEach(video => {
+        video.classList.remove('focused');
+    });
+
+    // Focus the first video in the target column
+    const firstVideo = column.querySelector('.video-card');
+    if (firstVideo) {
+        firstVideo.classList.add('focused');
+        firstVideo.focus();
+        // Scroll column into view if needed
+        column.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
 }
 
 function closeAllModals() {
@@ -306,7 +339,8 @@ function setupChannelColumns() {
 function createChannelColumns(channels) {
     const container = document.getElementById('channels-container');
     if (!container) {
-        console.error('Channels container not found');
+        // Admin panel doesn't have channels container - skip video column creation
+        console.log('Channels container not found - skipping video column creation (likely admin panel)');
         return;
     }
 

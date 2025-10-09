@@ -9,5 +9,5 @@
   "log_level": "INFO",
   "locale": "en",
   "auto_refresh": true,
-  "refresh_interval": 5
+  "refresh_interval": 30
 }

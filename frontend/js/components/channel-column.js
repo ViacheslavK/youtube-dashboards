@@ -155,16 +155,28 @@ class ChannelColumn {
             emptyState.remove();
         }
 
-        // Add video cards
+        // Add video cards with null checking
         this.videos.forEach(video => {
-            const videoCard = createVideoCard(
-                video,
-                (videoId) => this.handleVideoWatch(videoId),
-                (videoId) => this.handleVideoOpen(videoId)
-            );
+            // Skip null or invalid videos
+            if (!video || !video.id || !video.youtube_video_id) {
+                console.warn('Skipping invalid video:', video);
+                return;
+            }
 
-            videosContainer.appendChild(videoCard.element);
-            this.videoCards.set(video.id, videoCard);
+            try {
+                const videoCard = createVideoCard(
+                    video,
+                    (videoId) => this.handleVideoWatch(videoId),
+                    (videoId) => this.handleVideoOpen(videoId)
+                );
+
+                if (videoCard && videoCard.element) {
+                    videosContainer.appendChild(videoCard.element);
+                    this.videoCards.set(video.id, videoCard);
+                }
+            } catch (error) {
+                console.error('Error creating video card:', error, video);
+            }
         });
 
         // Update stats
@@ -181,17 +193,38 @@ class ChannelColumn {
                 const videoCard = this.videoCards.get(videoId);
                 if (videoCard) {
                     const video = videoCard.video;
-                    video.is_watched = true;
-                    videoCard.updateVideo(video);
+                    if (video) {
+                        video.is_watched = true;
+
+                        // Check if video card is still in DOM
+                        if (videoCard.element && videoCard.element.parentNode) {
+                            // Element exists, update it to show watched state
+                            try {
+                                videoCard.updateVideo(video);
+                                console.log('Video card updated to watched state');
+                            } catch (updateError) {
+                                console.error('Error updating video card:', updateError);
+                                // If update fails, remove the video instead
+                                this.removeVideo(videoId);
+                            }
+                        } else {
+                            // Element not in DOM, just remove from internal data
+                            console.log('Video element removed from DOM, removing from internal data');
+                            this.removeVideo(videoId);
+                        }
+                    }
+                } else {
+                    // Video card not found in our collection
+                    console.log('Video card not found in collection, removing from videos array');
+                    this.videos = this.videos.filter(v => v.id !== videoId);
                 }
 
-                // Remove from unwatched list after a delay
-                setTimeout(() => {
-                    this.removeVideo(videoId);
-                }, 1000);
-
-                // Update stats
-                this.updateStats();
+                // Update stats (with error handling)
+                try {
+                    this.updateStats();
+                } catch (error) {
+                    console.error('Error updating stats:', error);
+                }
 
                 return true;
             }

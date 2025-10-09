@@ -28,10 +28,11 @@
     <link rel="stylesheet" href="css/styles.css">
 
     <!-- Scripts -->
-    <script src="js/api.js"></script>
-    <script src="js/i18n.js"></script>
-    <script src="js/utils.js"></script>
-    <script src="js/state.js"></script>
+    <script src="js/api.js?v=3"></script>
+    <script src="js/i18n.js?v=4"></script>
+    <script src="js/utils.js?v=3"></script>
+    <script src="js/state.js?v=5"></script>
+    <script src="js/app.js?v=4"></script>
     <script src="js/admin.js"></script>
 </head>
 <body class="bg-gray-100 min-h-screen">
@@ -310,11 +311,14 @@
     <script>
         // Initialize the admin panel
         document.addEventListener('alpine:init', () => {
+            // Initialize the main app first (for i18n and stores)
+            initializeApp();
+
             Alpine.data('admin', () => ({
                 async init() {
                     // Load settings and translations
                     await Alpine.store('app').loadSettings();
-        
+
                     // Load initial data
                     Alpine.store('channels').load();
                     Alpine.store('subscriptions').load();

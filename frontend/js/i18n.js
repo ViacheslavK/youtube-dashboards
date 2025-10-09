@@ -23,6 +23,29 @@ class I18n {
                     'open': 'Open',
                     'no_videos': 'No videos',
                     'no_videos_desc': 'New videos will appear here'
+                },
+                'admin': {
+                    'title': 'Admin Panel',
+                    'back_to_dashboard': 'Back to Dashboard',
+                    'channels': {
+                        'title': 'Channels',
+                        'add': 'Add Channel'
+                    },
+                    'subscriptions': {
+                        'title': 'Subscriptions',
+                        'no_subscriptions': 'No subscriptions found'
+                    },
+                    'errors': {
+                        'title': 'Sync Errors',
+                        'no_errors': 'No errors'
+                    },
+                    'settings': {
+                        'title': 'Settings',
+                        'auto_refresh': 'Auto-refresh',
+                        'auto_refresh_desc': 'Automatically refresh data',
+                        'refresh_interval': 'Refresh Interval',
+                        'language': 'Language'
+                    }
                 }
             }
         };
