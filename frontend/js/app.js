@@ -334,6 +334,9 @@ function setupChannelColumns() {
             clearChannelColumns();
         }
     });
+
+    // Set up drag and drop for column reordering
+    setupColumnDragAndDrop();
 }
 
 function createChannelColumns(channels) {
@@ -359,6 +362,10 @@ function createChannelColumns(channels) {
             (videoId) => handleVideoOpen(videoId),
             (channelId) => handleClearWatched(channelId)
         );
+
+        // Store channel ID on the element for drag and drop
+        column.element.setAttribute('data-channel-id', channel.id);
+        column.element.__channelId = channel.id;
 
         container.appendChild(column.element);
         channelColumns.set(channel.id, column);
@@ -425,6 +432,196 @@ async function handleClearWatched(channelId) {
     return false;
 }
 
+// === Drag and Drop Column Reordering ===
+
+function setupColumnDragAndDrop() {
+    const container = document.getElementById('channels-container');
+    if (!container) return;
+
+    let draggedColumnId = null;
+    let dropIndicator = null;
+
+    // Create drop indicator element
+    function createDropIndicator() {
+        if (!dropIndicator) {
+            dropIndicator = document.createElement('div');
+            dropIndicator.className = 'drop-indicator absolute top-0 bottom-0 w-1 bg-blue-500 transition-all duration-200 pointer-events-none z-50';
+            dropIndicator.style.display = 'none';
+            container.appendChild(dropIndicator);
+        }
+        return dropIndicator;
+    }
+
+    // Drag over handler for the container
+    container.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+
+        const columns = Array.from(container.querySelectorAll('.channel-column'));
+        const mouseX = e.clientX;
+
+        // Find the column we're hovering over
+        let insertBeforeColumn = null;
+        let insertPosition = 0;
+
+        for (let i = 0; i < columns.length; i++) {
+            const column = columns[i];
+            const rect = column.getBoundingClientRect();
+
+            // Check if mouse is over this column
+            if (mouseX >= rect.left && mouseX <= rect.right) {
+                // Determine if we should insert before or after this column
+                const columnCenter = rect.left + rect.width / 2;
+
+                if (mouseX < columnCenter) {
+                    insertBeforeColumn = column;
+                    insertPosition = i;
+                } else {
+                    insertBeforeColumn = columns[i + 1] || null;
+                    insertPosition = i + 1;
+                }
+                break;
+            }
+        }
+
+        // Position the drop indicator
+        const indicator = createDropIndicator();
+        if (insertBeforeColumn) {
+            const rect = insertBeforeColumn.getBoundingClientRect();
+            indicator.style.left = rect.left + 'px';
+            indicator.style.display = 'block';
+        } else {
+            // Insert at the end
+            const lastColumn = columns[columns.length - 1];
+            if (lastColumn) {
+                const rect = lastColumn.getBoundingClientRect();
+                indicator.style.left = rect.right + 'px';
+                indicator.style.display = 'block';
+            }
+        }
+    });
+
+    // Drag leave handler
+    container.addEventListener('dragleave', (e) => {
+        // Only hide indicator if we're leaving the container entirely
+        if (!container.contains(e.relatedTarget)) {
+            if (dropIndicator) {
+                dropIndicator.style.display = 'none';
+            }
+        }
+    });
+
+    // Drop handler
+    container.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (dropIndicator) {
+            dropIndicator.style.display = 'none';
+        }
+
+        const draggedChannelId = e.dataTransfer.getData('text/plain');
+        if (!draggedChannelId) return;
+
+        // Find the column being dragged
+        const draggedColumn = container.querySelector(`[data-channel-id="${draggedChannelId}"]`);
+        if (!draggedColumn) return;
+
+        const columns = Array.from(container.querySelectorAll('.channel-column'));
+        const mouseX = e.clientX;
+
+        // Calculate new position
+        let newIndex = columns.length; // Default to end
+
+        for (let i = 0; i < columns.length; i++) {
+            const column = columns[i];
+            const rect = column.getBoundingClientRect();
+
+            // Check if mouse is over this column
+            if (mouseX >= rect.left && mouseX <= rect.right) {
+                // Determine if we should insert before or after this column
+                const columnCenter = rect.left + rect.width / 2;
+                newIndex = mouseX < columnCenter ? i : i + 1;
+                break;
+            }
+        }
+
+        // Reorder columns in DOM
+        reorderColumnsInDOM(draggedChannelId, newIndex);
+
+        // Update order in Alpine store and persist to backend
+        try {
+            await updateColumnOrder();
+            showToast('Column order updated', 'success');
+        } catch (error) {
+            console.error('Error updating column order:', error);
+            showToast('Failed to save column order', 'error');
+        }
+    });
+}
+
+function reorderColumnsInDOM(draggedChannelId, newIndex) {
+    const container = document.getElementById('channels-container');
+    const columns = Array.from(container.querySelectorAll('.channel-column'));
+    const draggedColumn = container.querySelector(`[data-channel-id="${draggedChannelId}"]`);
+
+    if (!draggedColumn) return;
+
+    // Remove dragged column from current position
+    draggedColumn.remove();
+
+    // Insert at new position
+    if (newIndex >= columns.length) {
+        container.appendChild(draggedColumn);
+    } else {
+        const referenceColumn = columns[newIndex];
+        container.insertBefore(draggedColumn, referenceColumn);
+    }
+}
+
+async function updateColumnOrder() {
+    const container = document.getElementById('channels-container');
+    if (!container) return;
+
+    const columns = Array.from(container.querySelectorAll('.channel-column'));
+
+    // Extract channel IDs in new order
+    const newOrder = columns.map(column => {
+        return column.getAttribute('data-channel-id');
+    }).filter(Boolean);
+
+    if (newOrder.length === 0) return;
+
+    // Update Alpine store
+    const channelsStore = Alpine.store('channels');
+    if (!channelsStore) return;
+
+    const currentChannels = [...channelsStore.items];
+
+    // Reorder channels array to match DOM order
+    const reorderedChannels = newOrder.map(id => currentChannels.find(c => c.id == id)).filter(Boolean);
+
+    // Update order_position for each channel
+    const updatedChannels = reorderedChannels.map((channel, index) => ({
+        ...channel,
+        order_position: index
+    }));
+
+    // Update store
+    channelsStore.items = updatedChannels;
+
+    // Persist to backend
+    try {
+        for (const channel of updatedChannels) {
+            await api.updateChannel(channel.id, { order_position: channel.order_position });
+        }
+    } catch (error) {
+        console.error('Failed to persist column order:', error);
+        showToast('Failed to save column order', 'error');
+        throw error;
+    }
+}
+
 // Make functions globally available
 window.appUtils = {
     getVideoThumbnail,
@@ -433,3 +630,6 @@ window.appUtils = {
     formatDuration,
     formatViewCount
 };
+
+// Make updateColumnOrder globally available for testing
+window.updateColumnOrder = updateColumnOrder;

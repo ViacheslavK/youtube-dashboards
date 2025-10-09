@@ -13,9 +13,7 @@ document.addEventListener('alpine:init', () => {
         i18nVersion: 0,
 
         setLoading(loading) {
-            console.log('App store setLoading called with:', loading);
             this.loading = loading;
-            console.log('App store loading is now:', this.loading);
         },
 
         init() {
@@ -39,13 +37,10 @@ document.addEventListener('alpine:init', () => {
         },
 
         async setLocale(locale) {
-            console.log('setLocale called with', locale);
             await i18n.setLocale(locale);
-            console.log('i18n.setLocale done for', locale);
             this.locale = locale;
             // Bump i18n version so Alpine effects re-run
             this.i18nVersion++;
-            console.log('store.locale set to', locale, 'i18nVersion', this.i18nVersion);
             this.saveSettings();
         },
 
@@ -74,20 +69,16 @@ document.addEventListener('alpine:init', () => {
             this.autoRefreshInterval = setInterval(() => {
                 this.refresh();
             }, this.refreshInterval * 60 * 1000);
-
-            console.log(`Auto-refresh started: every ${this.refreshInterval} minutes`);
         },
 
         stopAutoRefresh() {
             if (this.autoRefreshInterval) {
                 clearInterval(this.autoRefreshInterval);
                 this.autoRefreshInterval = null;
-                console.log('Auto-refresh stopped');
             }
         },
 
         async refresh() {
-            console.log('Refreshing data...');
             this.refreshing = true;
             this.lastRefresh = new Date();
 
@@ -140,7 +131,6 @@ document.addEventListener('alpine:init', () => {
             this.loading = true;
             try {
                 const channels = await api.getChannels();
-                console.log('Channels API response:', channels);
                 this.items = channels || [];
             } catch (error) {
                 console.error('Failed to load channels:', error);
@@ -301,7 +291,6 @@ document.addEventListener('alpine:init', () => {
             this.loading = true;
             try {
                 const subs = await api.getSubscriptions(channelId);
-                console.log('Subscriptions API response:', subs);
                 this.items = subs || [];
             } catch (error) {
                 console.error('Failed to load subscriptions:', error);
@@ -361,7 +350,6 @@ document.addEventListener('alpine:init', () => {
             this.loading = true;
             try {
                 const stats = await api.getStats();
-                console.log('Stats API response:', stats);
                 if (stats) {
                     this.data = stats;
                 }

@@ -40,7 +40,18 @@ class ChannelColumn {
             <!-- Channel Header -->
             <div class="p-4 border-b bg-gray-50">
                 <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-3">
+                    <div class="flex items-center space-x-3 flex-1">
+                        <!-- Drag Handle -->
+                        <div class="drag-handle cursor-move text-gray-400 hover:text-gray-600 p-1"
+                             title="Drag to reorder column"
+                             draggable="true"
+                             role="button"
+                             aria-label="Drag to reorder column"
+                             aria-describedby="column-reorder-help"
+                             tabindex="0">
+                            <i class="fas fa-grip-vertical text-sm"></i>
+                        </div>
+
                         <div class="w-4 h-4 rounded-full flex-shrink-0"
                              style="background-color: ${this.channel.color}"></div>
                         <div class="min-w-0 flex-1">
@@ -102,6 +113,12 @@ class ChannelColumn {
     }
 
     attachEventListeners() {
+        // Drag handle for column reordering
+        const dragHandle = this.element.querySelector('.drag-handle');
+        if (dragHandle) {
+            this.attachDragListeners(dragHandle);
+        }
+
         // Refresh button
         const refreshBtn = this.element.querySelector('.refresh-btn');
         if (refreshBtn) {
@@ -117,6 +134,290 @@ class ChannelColumn {
                 this.handleClearWatched();
             });
         }
+    }
+
+    attachDragListeners(dragHandle) {
+        // Desktop drag and drop
+        dragHandle.addEventListener('dragstart', (e) => {
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', this.channel.id);
+
+            // Add visual feedback
+            this.element.classList.add('dragging');
+            dragHandle.classList.add('text-blue-600');
+
+            // Set drag image to the entire column for better UX
+            const dragImage = this.element.cloneNode(true);
+            dragImage.style.transform = 'rotate(-2deg)';
+            dragImage.style.opacity = '0.8';
+            e.dataTransfer.setDragImage(dragImage, e.offsetX, e.offsetY);
+
+        });
+
+        dragHandle.addEventListener('dragend', () => {
+            this.element.classList.remove('dragging');
+            dragHandle.classList.remove('text-blue-600');
+        });
+
+        // Mobile touch support
+        this.attachTouchListeners(dragHandle);
+
+        // Keyboard accessibility
+        this.attachKeyboardListeners(dragHandle);
+
+        // Prevent default drag behavior on the column itself
+        this.element.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            e.stopPropagation(); // Prevent event bubbling to container
+        });
+    }
+
+    attachTouchListeners(dragHandle) {
+        let isDragging = false;
+        let startX, startY;
+        let currentX, currentY;
+        let dragOverlay = null;
+
+        // Touch start
+        dragHandle.addEventListener('touchstart', (e) => {
+            const touch = e.touches[0];
+            startX = touch.clientX;
+            startY = touch.clientY;
+            isDragging = false;
+
+            // Add visual feedback
+            dragHandle.classList.add('text-blue-600');
+
+            // Prevent scrolling while touching drag handle
+            e.preventDefault();
+        }, { passive: false });
+
+        // Touch move
+        dragHandle.addEventListener('touchmove', (e) => {
+            if (!startX || !startY) return;
+
+            const touch = e.touches[0];
+            currentX = touch.clientX;
+            currentY = touch.clientY;
+
+            // If moved more than 10px, consider it a drag
+            const deltaX = Math.abs(currentX - startX);
+            const deltaY = Math.abs(currentY - startY);
+
+            if (deltaX > 10 || deltaY > 10) {
+                if (!isDragging) {
+                    isDragging = true;
+                    this.startMobileDrag(dragHandle);
+                }
+
+                // Update drag overlay position
+                if (dragOverlay) {
+                    dragOverlay.style.left = (currentX - 50) + 'px';
+                    dragOverlay.style.top = (currentY - 25) + 'px';
+                }
+
+                // Find drop target
+                this.updateMobileDropTarget(e.target, currentX, currentY);
+            }
+
+            e.preventDefault();
+        }, { passive: false });
+
+        // Touch end
+        dragHandle.addEventListener('touchend', (e) => {
+            if (isDragging) {
+                this.endMobileDrag();
+            }
+
+            // Remove visual feedback
+            dragHandle.classList.remove('text-blue-600');
+            startX = startY = null;
+            isDragging = false;
+
+            e.preventDefault();
+        }, { passive: false });
+    }
+
+    startMobileDrag(dragHandle) {
+
+        // Create drag overlay
+        const dragOverlay = document.createElement('div');
+        dragOverlay.className = 'fixed pointer-events-none z-50 bg-white rounded-lg shadow-lg border p-2 opacity-90';
+        dragOverlay.style.width = '200px';
+        dragOverlay.style.height = '100px';
+        dragOverlay.innerHTML = `
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-grip-vertical text-gray-400"></i>
+                <div class="w-3 h-3 rounded-full" style="background-color: ${this.channel.color}"></div>
+                <span class="text-sm font-medium truncate">${this.escapeHtml(this.channel.name)}</span>
+            </div>
+        `;
+
+        document.body.appendChild(dragOverlay);
+        this.dragOverlay = dragOverlay;
+
+        // Add dragging class to column
+        this.element.classList.add('dragging');
+    }
+
+    updateMobileDropTarget(touchTarget, x, y) {
+        // Find the column we're hovering over
+        const columns = Array.from(document.querySelectorAll('.channel-column'));
+        let targetColumn = null;
+
+        for (const column of columns) {
+            const rect = column.getBoundingClientRect();
+            if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+                targetColumn = column;
+                break;
+            }
+        }
+
+        // Update visual feedback
+        columns.forEach(col => col.classList.remove('drag-over'));
+        if (targetColumn && targetColumn !== this.element) {
+            targetColumn.classList.add('drag-over');
+        }
+    }
+
+    endMobileDrag() {
+
+        // Remove drag overlay
+        if (this.dragOverlay) {
+            this.dragOverlay.remove();
+            this.dragOverlay = null;
+        }
+
+        // Remove dragging class
+        this.element.classList.remove('dragging');
+
+        // Remove all drag-over classes
+        document.querySelectorAll('.channel-column.drag-over').forEach(col => {
+            col.classList.remove('drag-over');
+        });
+
+        // Trigger column reordering if we were over a valid drop target
+        // This would need to be implemented with the main drag and drop logic
+        // For now, just show a message
+        showToast('Mobile drag and drop completed - full implementation coming soon!', 'info');
+    }
+
+    attachKeyboardListeners(dragHandle) {
+        dragHandle.addEventListener('keydown', (e) => {
+            switch(e.key) {
+                case 'Enter':
+                case ' ':
+                    e.preventDefault();
+                    this.enterReorderMode();
+                    break;
+                case 'Escape':
+                    e.preventDefault();
+                    this.exitReorderMode();
+                    break;
+                case 'ArrowLeft':
+                    e.preventDefault();
+                    this.moveColumn(-1);
+                    break;
+                case 'ArrowRight':
+                    e.preventDefault();
+                    this.moveColumn(1);
+                    break;
+            }
+        });
+    }
+
+    enterReorderMode() {
+        this.inReorderMode = true;
+        this.element.classList.add('reorder-mode');
+
+        // Add visual indication
+        const dragHandle = this.element.querySelector('.drag-handle');
+        dragHandle.classList.add('ring-2', 'ring-blue-500');
+
+        // Announce to screen readers
+        this.announceToScreenReader(`Entered reorder mode for ${this.channel.name}. Use arrow keys to move, Enter to confirm, Escape to cancel.`);
+
+    }
+
+    exitReorderMode() {
+        this.inReorderMode = false;
+        this.element.classList.remove('reorder-mode');
+
+        // Remove visual indication
+        const dragHandle = this.element.querySelector('.drag-handle');
+        dragHandle.classList.remove('ring-2', 'ring-blue-500');
+
+        // Announce to screen readers
+        this.announceToScreenReader(`Exited reorder mode for ${this.channel.name}`);
+
+    }
+
+    moveColumn(direction) {
+        if (!this.inReorderMode) return;
+
+        const container = document.getElementById('channels-container');
+        const columns = Array.from(container.querySelectorAll('.channel-column'));
+        const currentIndex = columns.indexOf(this.element);
+
+        if (currentIndex === -1) return;
+
+        const newIndex = Math.max(0, Math.min(columns.length - 1, currentIndex + direction));
+
+        if (newIndex !== currentIndex) {
+            // Move column in DOM
+            if (direction > 0) {
+                // Moving right
+                if (columns[newIndex]) {
+                    container.insertBefore(this.element, columns[newIndex].nextSibling);
+                }
+            } else {
+                // Moving left
+                container.insertBefore(this.element, columns[newIndex]);
+            }
+
+            // Update order in store and backend
+            if (window.updateColumnOrder) {
+                window.updateColumnOrder();
+            }
+
+            // Announce movement to screen readers
+            const position = newIndex + 1;
+            const total = columns.length;
+            this.announceToScreenReader(`Moved ${this.channel.name} to position ${position} of ${total}`);
+
+            showToast(`Moved column to position ${position}`, 'success');
+        }
+    }
+
+    announceToScreenReader(message) {
+        // Create a live region for screen reader announcements
+        let liveRegion = document.getElementById('drag-drop-announcements');
+        if (!liveRegion) {
+            liveRegion = document.createElement('div');
+            liveRegion.id = 'drag-drop-announcements';
+            liveRegion.setAttribute('aria-live', 'polite');
+            liveRegion.setAttribute('aria-atomic', 'true');
+            liveRegion.className = 'sr-only';
+            document.body.appendChild(liveRegion);
+        }
+
+        liveRegion.textContent = message;
+
+        // Clear after announcement
+        setTimeout(() => {
+            liveRegion.textContent = '';
+        }, 1000);
+    }
+
+    escapeHtml(str) {
+        if (str == null) return '';
+        return String(str)
+            .replace(/&/g, '&')
+            .replace(/</g, '<')
+            .replace(/>/g, '>')
+            .replace(/"/g, '"')
+            .replace(/'/g, '&#039;');
     }
 
     // Load videos for this channel

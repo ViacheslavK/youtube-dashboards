@@ -51,8 +51,13 @@ class APIClient {
     }
 
     async updateChannel(channelId, channelData) {
-        const response = await this.axios.put(`/channels/${channelId}`, channelData);
-        return response.data.success;
+        try {
+            const response = await this.axios.put(`/channels/${channelId}`, channelData);
+            return response.data.success;
+        } catch (error) {
+            console.error(`Failed to update channel ${channelId}:`, error);
+            throw error;
+        }
     }
 
     async deleteChannel(channelId) {

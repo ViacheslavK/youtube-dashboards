@@ -53,23 +53,17 @@ class I18n {
     }
 
     async setLocale(locale) {
-        console.log(`i18n.setLocale called for ${locale}, current locale: ${this.locale}, loaded: ${this.loadedLocales.has(locale)}`);
-
         if (this.locale === locale && this.loadedLocales.has(locale)) {
-            console.log(`Already loaded translations for ${locale}`);
             return; // Already loaded
         }
 
         // Load translations first if not already loaded
         if (!this.loadedLocales.has(locale)) {
             try {
-                console.log(`Loading translations for ${locale}...`);
                 const translations = await api.getTranslations(locale);
-                console.log(`Received translations object:`, translations);
                 if (translations && Object.keys(translations).length > 0) {
                     this.translations[locale] = translations;
                     this.loadedLocales.add(locale);
-                    console.log(`Successfully loaded ${Object.keys(translations).length} translation keys for ${locale}`);
                 } else {
                     console.warn(`Empty translations received for ${locale}`);
                 }
@@ -81,8 +75,6 @@ class I18n {
                 }
                 return;
             }
-        } else {
-            console.log(`Translations for ${locale} already loaded`);
         }
 
         // Finally switch active locale after translations are present

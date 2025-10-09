@@ -143,12 +143,12 @@ class Database:
         """Получение всех личных каналов"""
         conn = self.get_connection()
         cursor = conn.cursor()
-        
+
         cursor.execute('''
-            SELECT * FROM personal_channels 
+            SELECT * FROM personal_channels
             ORDER BY order_position
         ''')
-        
+
         channels = [dict(row) for row in cursor.fetchall()]
         conn.close()
         return channels
@@ -157,15 +157,32 @@ class Database:
         """Обновление authuser индекса для канала"""
         conn = self.get_connection()
         cursor = conn.cursor()
-        
+
         cursor.execute('''
-            UPDATE personal_channels 
-            SET authuser_index = ? 
+            UPDATE personal_channels
+            SET authuser_index = ?
             WHERE id = ?
         ''', (authuser_index, channel_id))
-        
+
         conn.commit()
         conn.close()
+
+    def update_channel_order(self, channel_id: int, order_position: int) -> bool:
+        """Обновление позиции канала в списке"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute('''
+            UPDATE personal_channels
+            SET order_position = ?
+            WHERE id = ?
+        ''', (order_position, channel_id))
+
+        rows_affected = cursor.rowcount
+        conn.commit()
+        conn.close()
+
+        return rows_affected > 0
     
     # === Subscriptions ===
     

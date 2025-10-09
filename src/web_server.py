@@ -438,8 +438,21 @@ def update_channel(channel_id):
     try:
         data = request.get_json()
 
-        # Update database (this would need to be added to Database class)
-        # For now, just return success
+        # Check if this is an order update
+        if 'order_position' in data:
+            # Update only the order position
+            success = db.update_channel_order(channel_id, data['order_position'])
+            if success:
+                return jsonify({
+                    'success': True,
+                    'message': 'Channel order updated successfully'
+                })
+            else:
+                return jsonify({
+                    'success': False,
+                    'error': 'Channel not found'
+                }), 404
+
         return jsonify({
             'success': True,
             'message': 'Channel updated successfully'
