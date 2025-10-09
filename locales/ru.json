@@ -17,7 +17,9 @@
     "error": "Ошибка",
     "success": "Успешно",
     "warning": "Предупреждение",
-    "unknown": "неизвестно"
+    "unknown": "неизвестно",
+    "sync": "Синхронизация",
+    "admin": "Админ"
   },
   
   "setup": {
@@ -69,6 +71,7 @@
     "unwatched": "Не просмотрено",
     "no_channels": "Нет настроенных каналов",
     "setup_prompt": "Запустите: python src/setup_channels.py",
+    "add_channel": "Добавить канал",
     "translated_channel_color": "Цвет: {color}",
     "translated_subscriptions": "Подписок: {count}",
     "translated_videos": "Видео: {total} (не просмотрено: {unviewed})",
@@ -122,6 +125,7 @@
     "mark_watched": "Отметить просмотренным",
     "clear_watched": "Очистить просмотренные",
     "no_videos": "Нет видео",
+    "no_videos_desc": "Новые видео появятся здесь",
     "recent_videos": "Последние {count} видео",
     "channel": "Канал: {channel}",
     "published_duration": "Опубликовано: {date} | Длительность: {duration}"
@@ -219,6 +223,30 @@
     "all_passed": "Все тесты пройдены!",
     "report_location": "Отчёт coverage: htmlcov/index.html",
     "some_failed": "Некоторые тесты не прошли"
+  },
+
+  "admin": {
+    "title": "Админ-панель",
+    "back_to_dashboard": "Вернуться к дашборду",
+    "channels": {
+      "title": "Каналы",
+      "add": "Добавить канал"
+    },
+    "subscriptions": {
+      "title": "Подписки",
+      "no_subscriptions": "Подписок не найдено"
+    },
+    "errors": {
+      "title": "Ошибки синхронизации",
+      "no_errors": "Ошибок нет"
+    },
+    "settings": {
+      "title": "Настройки",
+      "auto_refresh": "Автообновление",
+      "auto_refresh_desc": "Автоматически обновлять данные",
+      "refresh_interval": "Интервал обновления",
+      "language": "Язык"
+    }
   },
 
   "setup_check": {

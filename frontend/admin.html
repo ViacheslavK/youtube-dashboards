@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en" x-data="admin" x-init="init()">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - YouTube Dashboard</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <!-- Axios -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <!-- Day.js with plugins -->
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/relativeTime.js"></script>
+    <script>
+        dayjs.extend(dayjs_plugin_relativeTime);
+    </script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+
+    <!-- Scripts -->
+    <script src="js/api.js"></script>
+    <script src="js/i18n.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/state.js"></script>
+    <script src="js/admin.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo/Title -->
+                <div class="flex items-center">
+                    <i class="fas fa-cog text-gray-600 text-xl mr-3"></i>
+                    <h1 class="text-xl font-bold text-gray-900" x-t="'admin.title'">Admin Panel</h1>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex items-center space-x-3">
+                    <!-- Language Selector -->
+                    <select x-model="$store.app.locale"
+                            @change="$store.app.setLocale($event.target.value)"
+                            class="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <option value="en">EN</option>
+                        <option value="ru">RU</option>
+                    </select>
+
+                    <!-- Back to Dashboard -->
+                    <a href="index.html"
+                       class="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        <span x-t="'admin.back_to_dashboard'">Back to Dashboard</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+            <!-- Channels Section -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-lg shadow-sm border">
+                    <div class="p-6 border-b">
+                        <div class="flex items-center justify-between">
+                            <h2 class="text-lg font-semibold text-gray-900" x-t="'admin.channels.title'">Channels</h2>
+                            <button @click="showAddChannelModal"
+                                    class="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                                <i class="fas fa-plus mr-2"></i>
+                                <span x-t="'admin.channels.add'">Add Channel</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="p-6">
+                        <!-- Loading State -->
+                        <div x-show="$store.channels.loading" class="text-center py-8">
+                            <i class="fas fa-spinner fa-spin text-2xl text-gray-400"></i>
+                        </div>
+
+                        <!-- Channels List -->
+                        <div x-show="!$store.channels.loading" class="space-y-4">
+                            <template x-for="channel in $store.channels.items" :key="channel.id">
+                                <div class="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-4 h-4 rounded-full flex-shrink-0"
+                                             :style="`background-color: ${channel.color}`"></div>
+                                        <div>
+                                            <h3 class="font-medium text-gray-900" x-text="channel.name"></h3>
+                                            <p class="text-sm text-gray-600">
+                                                <span x-text="channel.stats ? `${channel.stats.subscriptions} subs` : '...'"></span>
+                                                <span class="mx-2">•</span>
+                                                <span x-text="channel.stats ? `${channel.stats.total_videos} videos` : '...'"></span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <button @click="syncChannel(channel.id)"
+                                                class="text-blue-600 hover:text-blue-800 p-1">
+                                            <i class="fas fa-sync-alt text-sm"></i>
+                                        </button>
+                                        <button @click="editChannel(channel)"
+                                                class="text-gray-600 hover:text-gray-800 p-1">
+                                            <i class="fas fa-edit text-sm"></i>
+                                        </button>
+                                        <button @click="deleteChannel(channel.id)"
+                                                class="text-red-600 hover:text-red-800 p-1">
+                                            <i class="fas fa-trash text-sm"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Subscriptions Section -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-lg shadow-sm border">
+                    <div class="p-6 border-b">
+                        <h2 class="text-lg font-semibold text-gray-900" x-t="'admin.subscriptions.title'">Subscriptions</h2>
+
+                        <!-- Filters -->
+                        <div class="mt-4 space-y-3">
+                            <select x-model="$store.subscriptions.filters.channelId"
+                                    @change="$store.subscriptions.setFilter('channelId', $event.target.value)"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">All Channels</option>
+                                <template x-for="channel in $store.channels.items" :key="channel.id">
+                                    <option :value="channel.id" x-text="channel.name"></option>
+                                </template>
+                            </select>
+
+                            <select x-model="$store.subscriptions.filters.status"
+                                    @change="$store.subscriptions.setFilter('status', $event.target.value)"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="all">All Status</option>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+
+                            <input x-model="$store.subscriptions.filters.search"
+                                   @input.debounce.300ms="$store.subscriptions.setFilter('search', $event.target.value)"
+                                   type="text"
+                                   placeholder="Search subscriptions..."
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+
+                    <div class="max-h-96 overflow-y-auto">
+                        <!-- Loading State -->
+                        <div x-show="$store.subscriptions.loading" class="text-center py-8">
+                            <i class="fas fa-spinner fa-spin text-2xl text-gray-400"></i>
+                        </div>
+
+                        <!-- Subscriptions List -->
+                        <div x-show="!$store.subscriptions.loading" class="p-6 space-y-3">
+                            <template x-for="sub in $store.subscriptions.filtered.slice(0, 20)" :key="sub.id">
+                                <div class="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center space-x-2">
+                                            <span :class="sub.is_active ? 'text-green-500' : 'text-red-500'">
+                                                <i :class="sub.is_active ? 'fas fa-check-circle' : 'fas fa-times-circle'"></i>
+                                            </span>
+                                            <span class="font-medium text-gray-900 truncate" x-text="sub.channel_name"></span>
+                                        </div>
+                                        <p class="text-xs text-gray-600 mt-1" x-text="getChannelName(sub.personal_channel_id)"></p>
+                                    </div>
+                                    <div class="flex items-center space-x-2 ml-2">
+                                        <button @click="toggleSubscription(sub)"
+                                                :class="sub.is_active ? 'text-yellow-600 hover:text-yellow-800' : 'text-green-600 hover:text-green-800'"
+                                                class="p-1">
+                                            <i :class="sub.is_active ? 'fas fa-pause' : 'fas fa-play'" class="text-sm"></i>
+                                        </button>
+                                        <button @click="deleteSubscription(sub.id)"
+                                                class="text-red-600 hover:text-red-800 p-1">
+                                            <i class="fas fa-trash text-sm"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <!-- No Subscriptions -->
+                            <div x-show="$store.subscriptions.filtered.length === 0" class="text-center py-8 text-gray-500">
+                                <i class="fas fa-list text-3xl mb-2"></i>
+                                <p x-t="'admin.subscriptions.no_subscriptions'">No subscriptions found</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Errors & Settings Section -->
+            <div class="lg:col-span-1 space-y-8">
+
+                <!-- Sync Errors -->
+                <div class="bg-white rounded-lg shadow-sm border">
+                    <div class="p-6 border-b">
+                        <div class="flex items-center justify-between">
+                            <h2 class="text-lg font-semibold text-gray-900" x-t="'admin.errors.title'">Sync Errors</h2>
+                            <span x-show="$store.errors.items.length > 0"
+                                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800"
+                                  x-text="$store.errors.items.length"></span>
+                        </div>
+                    </div>
+
+                    <div class="p-6">
+                        <!-- Loading State -->
+                        <div x-show="$store.errors.loading" class="text-center py-4">
+                            <i class="fas fa-spinner fa-spin text-gray-400"></i>
+                        </div>
+
+                        <!-- Errors List -->
+                        <div x-show="!$store.errors.loading" class="space-y-3">
+                            <template x-for="error in $store.errors.items.slice(0, 5)" :key="error.id">
+                                <div class="p-3 border rounded-lg bg-red-50 border-red-200">
+                                    <div class="flex items-start justify-between">
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-sm font-medium text-red-800" x-text="error.error_type"></p>
+                                            <p class="text-xs text-red-600 mt-1 truncate" x-text="error.channel_name"></p>
+                                            <p class="text-xs text-gray-600 mt-1" x-text="formatRelative(error.occurred_at)"></p>
+                                        </div>
+                                        <button @click="markErrorResolved(error.id)"
+                                                class="text-green-600 hover:text-green-800 p-1 ml-2">
+                                            <i class="fas fa-check text-sm"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <!-- No Errors -->
+                            <div x-show="$store.errors.items.length === 0" class="text-center py-8 text-gray-500">
+                                <i class="fas fa-check-circle text-3xl text-green-500 mb-2"></i>
+                                <p x-t="'admin.errors.no_errors'">No errors</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings -->
+                <div class="bg-white rounded-lg shadow-sm border">
+                    <div class="p-6 border-b">
+                        <h2 class="text-lg font-semibold text-gray-900" x-t="'admin.settings.title'">Settings</h2>
+                    </div>
+
+                    <div class="p-6 space-y-4">
+                        <!-- Auto-refresh -->
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <label class="text-sm font-medium text-gray-900" x-t="'admin.settings.auto_refresh'">Auto-refresh</label>
+                                <p class="text-xs text-gray-600" x-t="'admin.settings.auto_refresh_desc'">Automatically refresh data</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input x-model="$store.app.autoRefresh"
+                                       @change="$store.app.setAutoRefresh($event.target.checked)"
+                                       type="checkbox"
+                                       class="sr-only peer">
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                            </label>
+                        </div>
+
+                        <!-- Refresh Interval -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-900 mb-2" x-t="'admin.settings.refresh_interval'">Refresh Interval</label>
+                            <select x-model="$store.app.refreshInterval"
+                                    @change="$store.app.setRefreshInterval(parseInt($event.target.value))"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="1">1 minute</option>
+                                <option value="5">5 minutes</option>
+                                <option value="10">10 minutes</option>
+                                <option value="15">15 minutes</option>
+                                <option value="30">30 minutes</option>
+                            </select>
+                        </div>
+
+                        <!-- Language -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-900 mb-2" x-t="'admin.settings.language'">Language</label>
+                            <select x-model="$store.app.locale"
+                                    @change="$store.app.setLocale($event.target.value)"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="en">English</option>
+                                <option value="ru">Русский</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2 pointer-events-none"></div>
+
+    <!-- Modals will be added here -->
+
+    <script>
+        // Initialize the admin panel
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('admin', () => ({
+                async init() {
+                    // Load settings and translations
+                    await Alpine.store('app').loadSettings();
+        
+                    // Load initial data
+                    Alpine.store('channels').load();
+                    Alpine.store('subscriptions').load();
+                    Alpine.store('errors').load();
+                },
+
+                showAddChannelModal() {
+                    // Implementation will be added
+                    showToast('Add channel feature coming soon', 'info');
+                },
+
+                syncChannel(channelId) {
+                    showToast('Syncing channel...', 'info');
+                    // Implementation will be added
+                },
+
+                editChannel(channel) {
+                    // Implementation will be added
+                    showToast('Edit channel feature coming soon', 'info');
+                },
+
+                deleteChannel(channelId) {
+                    if (confirm('Are you sure you want to delete this channel?')) {
+                        Alpine.store('channels').delete(channelId);
+                    }
+                },
+
+                toggleSubscription(subscription) {
+                    const newStatus = !subscription.is_active;
+                    Alpine.store('subscriptions').update(subscription.id, { is_active: newStatus });
+                },
+
+                deleteSubscription(subscriptionId) {
+                    if (confirm('Are you sure you want to delete this subscription?')) {
+                        Alpine.store('subscriptions').delete(subscriptionId);
+                    }
+                },
+
+                markErrorResolved(errorId) {
+                    Alpine.store('errors').markResolved(errorId);
+                },
+
+                getChannelName(channelId) {
+                    const channel = Alpine.store('channels').getById(channelId);
+                    return channel ? channel.name : 'Unknown';
+                }
+            }));
+        });
+    </script>
+</body>
+</html>

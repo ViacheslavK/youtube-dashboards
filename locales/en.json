@@ -16,7 +16,9 @@
     "loading": "Loading...",
     "error": "Error",
     "success": "Success",
-    "warning": "Warning"
+    "warning": "Warning",
+    "sync": "Sync",
+    "admin": "Admin"
   },
   
   "setup": {
@@ -86,6 +88,7 @@
     "unwatched": "Unwatched",
     "no_channels": "No configured channels",
     "setup_prompt": "Run: python src/setup_channels.py",
+    "add_channel": "Add Channel",
     "translated_channel_color": "Color: {color}",
     "translated_subscriptions": "Subscriptions: {count}",
     "translated_videos": "Videos: {total} (unwatched: {unviewed})",
@@ -118,6 +121,7 @@
     "mark_watched": "Mark as watched",
     "clear_watched": "Clear watched",
     "no_videos": "No videos",
+    "no_videos_desc": "New videos will appear here",
     "recent_videos": "Recent {count} videos",
     "channel": "Channel: {channel}",
     "published_duration": "Published: {date} | Duration: {duration}"
@@ -191,6 +195,30 @@
     "all_passed": "All tests passed!",
     "report_location": "Coverage report: htmlcov/index.html",
     "some_failed": "Some tests failed"
+  },
+
+  "admin": {
+    "title": "Admin Panel",
+    "back_to_dashboard": "Back to Dashboard",
+    "channels": {
+      "title": "Channels",
+      "add": "Add Channel"
+    },
+    "subscriptions": {
+      "title": "Subscriptions",
+      "no_subscriptions": "No subscriptions found"
+    },
+    "errors": {
+      "title": "Sync Errors",
+      "no_errors": "No errors"
+    },
+    "settings": {
+      "title": "Settings",
+      "auto_refresh": "Auto-refresh",
+      "auto_refresh_desc": "Automatically refresh data",
+      "refresh_interval": "Refresh Interval",
+      "language": "Language"
+    }
   },
 
   "setup_check": {

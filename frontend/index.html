@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Dashboard</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <!-- Axios -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <!-- Day.js with plugins -->
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/relativeTime.js"></script>
+    <script>
+        dayjs.extend(dayjs_plugin_relativeTime);
+    </script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+
+    <!-- Scripts -->
+    <script src="js/api.js"></script>
+    <script src="js/i18n.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/state.js"></script>
+    <script src="js/app.js"></script>
+</head>
+<body x-data="{}" class="bg-gray-100 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo/Title -->
+                <div class="flex items-center">
+                    <i class="fab fa-youtube text-red-500 text-2xl mr-3"></i>
+                    <h1 class="text-xl font-bold text-gray-900" x-t="'app.name'">YouTube Dashboard</h1>
+                </div>
+
+                <!-- Stats -->
+                <div class="hidden md:flex items-center space-x-6 text-sm text-gray-600">
+                    <div class="flex items-center space-x-4">
+                        <span x-show="$store.stats.data" x-text="`${$store.stats.data ? $store.stats.data.total_channels : 0} channels`"></span>
+                        <span x-show="$store.stats.data" x-text="`${$store.stats.data ? $store.stats.data.total_subscriptions : 0} subs`"></span>
+                        <span x-show="$store.stats.data" x-text="`${$store.stats.data ? $store.stats.data.unwatched_videos : 0} unwatched`"></span>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex items-center space-x-3">
+                    <!-- Add Channel Button (always visible in header) -->
+                    <button @click="$store.app.showAddChannelModal()"
+                            class="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <i class="fas fa-plus mr-2"></i>
+                        <span x-t="'channels.add_channel'">Add Channel</span>
+                    </button>
+
+                    <!-- Sync Button -->
+                    <button @click="$store.app.refresh()"
+                            class="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                            :disabled="$store.app.loading">
+                        <i class="fas fa-sync-alt mr-2" :class="{ 'fa-spin': $store.app.loading }"></i>
+                        <span x-t="'common.sync'">Sync</span>
+                    </button>
+
+                    <!-- Language Selector -->
+                    <select x-model="$store.app.locale"
+                            @change="$store.app.setLocale($event.target.value)"
+                            class="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <option value="en">EN</option>
+                        <option value="ru">RU</option>
+                    </select>
+
+                    <!-- Admin Button -->
+                    <a href="admin.html"
+                       class="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <i class="fas fa-cog mr-2"></i>
+                        <span x-t="'common.admin'">Admin</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main x-data="{}" class="max-w-7xl lg:max-w-[70vw] mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:max-h-[90vh]">
+        <!-- Main Content Area -->
+        <div x-show="!$store.app.loading">
+            <!-- No Channels State (show when loaded but no channels) -->
+            <div x-show="$store.channels.items && $store.channels.items.length === 0"
+                 class="text-center py-16">
+                <i class="fas fa-plus-circle text-6xl text-gray-300 mb-6"></i>
+                <h2 class="text-2xl font-bold text-gray-900 mb-4" x-t="'channels.no_channels'">No Channels Yet</h2>
+                <p class="text-gray-600 mb-8" x-t="'channels.setup_prompt'">Get started by adding your first YouTube channel</p>
+                <button @click="$store.app.showAddChannelModal()"
+                        class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    <i class="fas fa-plus mr-2"></i>
+                    <span x-t="'channels.add_channel'">Add Channel</span>
+                </button>
+            </div>
+
+            <!-- Channels Container with Horizontal Scroll -->
+            <div x-show="$store.channels.items && $store.channels.items.length > 0"
+                 class="flex space-x-6 overflow-x-auto pb-4 custom-scrollbar channels-container"
+                 id="channels-container">
+                <!-- Channel columns will be dynamically added here -->
+            </div>
+        </div>
+
+        <!-- Initial Loading State (show when app is loading) -->
+        <div x-bind:style="$store.app.loading ? '' : 'display: none;'"
+             class="flex justify-center items-center h-64">
+            <div class="text-center">
+                <i class="fas fa-spinner fa-spin text-4xl text-gray-400 mb-4"></i>
+                <p class="text-gray-600" x-t="'common.loading'">Loading...</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2 pointer-events-none"></div>
+
+    <!-- Modals will be added here -->
+
+    <!-- Include component scripts -->
+    <script src="js/components/video-card.js"></script>
+    <script src="js/components/channel-column.js"></script>
+
+    <script>
+        // Initialize the app when Alpine is ready
+        document.addEventListener('alpine:init', () => {
+            // The app logic is handled by Alpine stores and the components
+            initializeApp();
+        });
+    </script>
+</body>
+</html>

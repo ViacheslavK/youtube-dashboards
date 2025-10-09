@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Component Test - YouTube Dashboard</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <!-- Axios -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <!-- Day.js -->
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+
+    <!-- Scripts -->
+    <script src="js/api.js"></script>
+    <script src="js/i18n.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/state.js"></script>
+    <script src="js/components/video-card.js"></script>
+    <script src="js/components/channel-column.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-8">
+    <div class="max-w-7xl mx-auto">
+        <h1 class="text-3xl font-bold text-gray-900 mb-8">Component Test Suite</h1>
+
+        <!-- Test Controls -->
+        <div class="bg-white rounded-lg shadow-sm border p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4">Test Controls</h2>
+            <div class="flex gap-4">
+                <button onclick="testVideoCard()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+                    Test Video Card
+                </button>
+                <button onclick="testChannelColumn()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">
+                    Test Channel Column
+                </button>
+                <button onclick="runAllTests()" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded">
+                    Run All Tests
+                </button>
+                <button onclick="clearTests()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">
+                    Clear Tests
+                </button>
+            </div>
+        </div>
+
+        <!-- Test Results -->
+        <div id="test-results" class="bg-white rounded-lg shadow-sm border p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4">Test Results</h2>
+            <div id="results-content" class="space-y-2">
+                <p class="text-gray-500">No tests run yet. Click a test button to begin.</p>
+            </div>
+        </div>
+
+        <!-- Test Output Area -->
+        <div id="test-output" class="bg-white rounded-lg shadow-sm border p-6">
+            <h2 class="text-xl font-semibold mb-4">Component Output</h2>
+            <div id="output-content" class="min-h-64 border-2 border-dashed border-gray-300 rounded p-4">
+                <p class="text-gray-500">Components will be rendered here...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2 pointer-events-none"></div>
+
+    <script>
+        // Test data
+        const sampleVideo = {
+            id: 1,
+            youtube_video_id: 'dQw4w9WgXcQ',
+            title: 'Sample Video Title',
+            channel_name: 'Sample Channel',
+            published_at: new Date().toISOString(),
+            duration: 'PT10M30S',
+            view_count: 1000000,
+            is_watched: false
+        };
+
+        const sampleChannel = {
+            id: 1,
+            name: 'Technology',
+            color: '#3b82f6',
+            stats: {
+                total_videos: 25,
+                unwatched_videos: 15,
+                subscriptions: 50
+            }
+        };
+
+        // Test functions
+        function addTestResult(testName, success, message = '') {
+            const resultsContent = document.getElementById('results-content');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `flex items-center gap-2 ${success ? 'text-green-600' : 'text-red-600'}`;
+            resultDiv.innerHTML = `
+                <i class="fas ${success ? 'fa-check-circle' : 'fa-times-circle'}"></i>
+                <span class="font-medium">${testName}:</span>
+                <span>${success ? 'PASSED' : 'FAILED'}</span>
+                ${message ? `<span class="text-gray-600 ml-2">(${message})</span>` : ''}
+            `;
+            resultsContent.appendChild(resultDiv);
+        }
+
+        function clearTestResults() {
+            document.getElementById('results-content').innerHTML = '<p class="text-gray-500">No tests run yet. Click a test button to begin.</p>';
+        }
+
+        function clearOutput() {
+            document.getElementById('output-content').innerHTML = '<p class="text-gray-500">Components will be rendered here...</p>';
+        }
+
+        function clearTests() {
+            clearTestResults();
+            clearOutput();
+        }
+
+        async function testVideoCard() {
+            clearOutput();
+            const outputContent = document.getElementById('output-content');
+
+            try {
+                // Create video card
+                const videoCard = createVideoCard(sampleVideo, () => {}, () => {});
+                outputContent.appendChild(videoCard.element);
+
+                addTestResult('Video Card Creation', true, 'Component rendered successfully');
+
+                // Test video data
+                const titleElement = videoCard.element.querySelector('h4');
+                if (titleElement && titleElement.textContent === sampleVideo.title) {
+                    addTestResult('Video Card Data Binding', true, 'Title displayed correctly');
+                } else {
+                    addTestResult('Video Card Data Binding', false, 'Title not displayed correctly');
+                }
+
+            } catch (error) {
+                addTestResult('Video Card Creation', false, error.message);
+                outputContent.innerHTML = `<p class="text-red-600">Error: ${error.message}</p>`;
+            }
+        }
+
+        async function testChannelColumn() {
+            clearOutput();
+            const outputContent = document.getElementById('output-content');
+
+            try {
+                // Create channel column
+                const channelColumn = createChannelColumn(
+                    sampleChannel,
+                    () => Promise.resolve(true),
+                    () => Promise.resolve(true),
+                    () => Promise.resolve(true)
+                );
+                outputContent.appendChild(channelColumn.element);
+
+                addTestResult('Channel Column Creation', true, 'Component rendered successfully');
+
+                // Test channel data
+                const titleElement = channelColumn.element.querySelector('h3');
+                if (titleElement && titleElement.textContent === sampleChannel.name) {
+                    addTestResult('Channel Column Data Binding', true, 'Channel name displayed correctly');
+                } else {
+                    addTestResult('Channel Column Data Binding', false, 'Channel name not displayed correctly');
+                }
+
+            } catch (error) {
+                addTestResult('Channel Column Creation', false, error.message);
+                outputContent.innerHTML = `<p class="text-red-600">Error: ${error.message}</p>`;
+            }
+        }
+
+        async function runAllTests() {
+            clearTestResults();
+            clearOutput();
+
+            addTestResult('Test Suite', true, 'Starting component tests...');
+
+            await testVideoCard();
+            await testChannelColumn();
+
+            addTestResult('Test Suite', true, 'All tests completed');
+        }
+
+        // Initialize when Alpine is ready
+        document.addEventListener('alpine:init', () => {
+            console.log('Component test page initialized');
+        });
+    </script>
+</body>
+</html>
