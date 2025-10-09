@@ -26,7 +26,7 @@ class ChannelColumn {
     render() {
         // Create the channel column element
         this.element = document.createElement('div');
-        this.element.className = 'flex-shrink-0 w-80 bg-white rounded-lg shadow-sm border overflow-hidden channel-column';
+        this.element.className = 'flex-shrink-0 w-96 bg-white rounded-lg shadow-sm border overflow-hidden channel-column';
         this.element.innerHTML = this.getTemplate();
 
         // Add event listeners
@@ -63,7 +63,7 @@ class ChannelColumn {
             </div>
 
             <!-- Videos Container -->
-            <div class="flex-1 overflow-y-auto max-h-96 custom-scrollbar videos-container">
+            <div class="flex-1 overflow-y-auto max-h-[32rem] custom-scrollbar videos-container">
                 <!-- Loading State -->
                 <div class="loading-state flex justify-center items-center py-8 ${this.loading ? '' : 'hidden'}">
                     <div class="text-center">

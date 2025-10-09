@@ -35,14 +35,14 @@
 
     <!-- Component scripts must be loaded before app.js -->
     <script src="js/components/video-card.js?v=2"></script>
-    <script src="js/components/channel-column.js?v=3"></script>
+    <script src="js/components/channel-column.js?v=4"></script>
 
     <script src="js/app.js?v=2"></script>
 </head>
 <body x-data="{}" class="bg-gray-100 min-h-screen">
     <!-- Header -->
     <header class="bg-white shadow-sm border-b">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-none mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
                 <!-- Logo/Title -->
                 <div class="flex items-center">
@@ -96,7 +96,7 @@
     </header>
 
     <!-- Main Content -->
-    <main x-data="{}" class="max-w-7xl lg:max-w-[70vw] mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:max-h-[90vh]">
+    <main x-data="{}" class="max-w-none xl:max-w-[85vw] mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:max-h-[95vh]">
         <!-- Main Content Area -->
         <div x-show="!$store.app.loading">
             <!-- No Channels State (show when loaded but no channels) -->
