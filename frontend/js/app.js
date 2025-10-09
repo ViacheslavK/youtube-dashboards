@@ -57,22 +57,187 @@ async function initializeApp() {
 
 function setupKeyboardShortcuts() {
     document.addEventListener('keydown', (event) => {
-        // Ctrl/Cmd + R to refresh data
-        if ((event.ctrlKey || event.metaKey) && event.key === 'r') {
-            event.preventDefault();
-            Alpine.store('app').refresh();
-            showToast('Refreshing data...', 'info');
+        // Don't interfere when user is typing in inputs
+        if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA' || event.target.isContentEditable) {
+            return;
         }
 
-        // Ctrl/Cmd + L to focus language selector
-        if ((event.ctrlKey || event.metaKey) && event.key === 'l') {
-            event.preventDefault();
-            const langSelector = document.querySelector('select[x-model="$store.app.locale"]');
-            if (langSelector) {
-                langSelector.focus();
-            }
+        // Global shortcuts
+        switch(event.key) {
+            case 'r':
+            case 'R':
+                if (event.ctrlKey || event.metaKey) {
+                    event.preventDefault();
+                    Alpine.store('app').refresh();
+                    showToast('Refreshing data...', 'info');
+                }
+                break;
+
+            case 'l':
+            case 'L':
+                if (event.ctrlKey || event.metaKey) {
+                    event.preventDefault();
+                    const langSelector = document.querySelector('select[x-model="$store.app.locale"]');
+                    if (langSelector) {
+                        langSelector.focus();
+                    }
+                }
+                break;
+
+            case '?':
+                if (event.shiftKey) {
+                    event.preventDefault();
+                    showKeyboardShortcutsHelp();
+                }
+                break;
+
+            case 'Escape':
+                event.preventDefault();
+                closeAllModals();
+                break;
+
+            case ' ': // Spacebar - mark focused video as watched
+                event.preventDefault();
+                handleGlobalVideoWatch();
+                break;
+
+            case 'w':
+            case 'W':
+                event.preventDefault();
+                handleGlobalVideoWatch();
+                break;
+
+            case 'Enter':
+                event.preventDefault();
+                handleGlobalVideoOpen();
+                break;
+
+            case 'ArrowUp':
+                event.preventDefault();
+                focusPreviousVideo();
+                break;
+
+            case 'ArrowDown':
+                event.preventDefault();
+                focusNextVideo();
+                break;
+
+            case 'ArrowLeft':
+                event.preventDefault();
+                focusPreviousColumn();
+                break;
+
+            case 'ArrowRight':
+                event.preventDefault();
+                focusNextColumn();
+                break;
         }
     });
+}
+
+// Global video interaction handlers
+function handleGlobalVideoWatch() {
+    const focusedVideo = document.querySelector('.video-card.focused');
+    if (focusedVideo) {
+        const watchBtn = focusedVideo.querySelector('.watch-btn');
+        if (watchBtn && !watchBtn.disabled) {
+            watchBtn.click();
+        }
+    }
+}
+
+function handleGlobalVideoOpen() {
+    const focusedVideo = document.querySelector('.video-card.focused');
+    if (focusedVideo) {
+        const openBtn = focusedVideo.querySelector('.open-btn');
+        if (openBtn) {
+            openBtn.click();
+        }
+    }
+}
+
+function focusPreviousVideo() {
+    const focusedVideo = document.querySelector('.video-card.focused');
+    if (focusedVideo) {
+        const prevVideo = focusedVideo.previousElementSibling;
+        if (prevVideo && prevVideo.classList.contains('video-card')) {
+            focusedVideo.classList.remove('focused');
+            prevVideo.classList.add('focused');
+            prevVideo.focus();
+        }
+    }
+}
+
+function focusNextVideo() {
+    const focusedVideo = document.querySelector('.video-card.focused');
+    if (!focusedVideo) {
+        // Focus first video if none focused
+        const firstVideo = document.querySelector('.video-card');
+        if (firstVideo) {
+            firstVideo.classList.add('focused');
+            firstVideo.focus();
+        }
+    } else {
+        const nextVideo = focusedVideo.nextElementSibling;
+        if (nextVideo && nextVideo.classList.contains('video-card')) {
+            focusedVideo.classList.remove('focused');
+            nextVideo.classList.add('focused');
+            nextVideo.focus();
+        }
+    }
+}
+
+function focusPreviousColumn() {
+    // Column navigation logic would go here
+    console.log('Focus previous column');
+}
+
+function focusNextColumn() {
+    // Column navigation logic would go here
+    console.log('Focus next column');
+}
+
+function closeAllModals() {
+    // Close any open modals or dropdowns
+    document.querySelectorAll('.modal-overlay').forEach(modal => {
+        modal.classList.add('hidden');
+    });
+}
+
+function showKeyboardShortcutsHelp() {
+    const shortcuts = [
+        { key: 'Space / W', description: 'Mark video as watched' },
+        { key: 'Enter', description: 'Open video' },
+        { key: 'Ctrl+R', description: 'Refresh all data' },
+        { key: 'Ctrl+L', description: 'Focus language selector' },
+        { key: '↑/↓', description: 'Navigate between videos' },
+        { key: '←/→', description: 'Navigate between columns' },
+        { key: 'Esc', description: 'Close modals/dropdowns' },
+        { key: 'Shift+?', description: 'Show this help' }
+    ];
+
+    const helpContent = `
+        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg p-6 max-w-md mx-4">
+                <h3 class="text-lg font-semibold mb-4">Keyboard Shortcuts</h3>
+                <div class="space-y-2">
+                    ${shortcuts.map(shortcut => `
+                        <div class="flex justify-between">
+                            <span class="font-mono text-sm bg-gray-100 px-2 py-1 rounded">${shortcut.key}</span>
+                            <span class="text-sm text-gray-600">${shortcut.description}</span>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="mt-6 text-center">
+                    <button onclick="this.closest('.fixed').remove()" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', helpContent);
 }
 
 // Utility functions for templates

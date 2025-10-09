@@ -8,6 +8,8 @@ document.addEventListener('alpine:init', () => {
         autoRefresh: true,
         refreshInterval: 5, // minutes
         lastRefresh: null,
+        lastRefreshFormatted: '',
+        refreshing: false, // For background refresh indicator
         i18nVersion: 0,
 
         setLoading(loading) {
@@ -85,8 +87,10 @@ document.addEventListener('alpine:init', () => {
         },
 
         async refresh() {
-            console.log('Auto-refreshing data...');
+            console.log('Refreshing data...');
+            this.refreshing = true;
             this.lastRefresh = new Date();
+            this.lastRefreshFormatted = this.formatLastRefresh();
 
             try {
                 // Reload channels and stats
@@ -98,9 +102,16 @@ document.addEventListener('alpine:init', () => {
 
                 showToast('Data refreshed successfully', 'success');
             } catch (error) {
-                console.error('Auto-refresh failed:', error);
+                console.error('Refresh failed:', error);
                 showToast('Failed to refresh data', 'error');
+            } finally {
+                this.refreshing = false;
             }
+        },
+
+        formatLastRefresh() {
+            if (!this.lastRefresh) return '';
+            return dayjs(this.lastRefresh).fromNow();
         },
 
         async saveSettings() {

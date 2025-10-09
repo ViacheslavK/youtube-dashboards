@@ -117,6 +117,15 @@ class VideoCard {
 
         // Make focusable for accessibility
         this.element.setAttribute('tabindex', '0');
+
+        // Add focus styles
+        this.element.addEventListener('focus', () => {
+            this.element.classList.add('focused');
+        });
+
+        this.element.addEventListener('blur', () => {
+            this.element.classList.remove('focused');
+        });
     }
 
     async handleWatch() {

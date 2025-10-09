@@ -31,13 +31,13 @@
     <script src="js/api.js?v=2"></script>
     <script src="js/i18n.js?v=3"></script>
     <script src="js/utils.js?v=2"></script>
-    <script src="js/state.js?v=2"></script>
+    <script src="js/state.js?v=3"></script>
 
     <!-- Component scripts must be loaded before app.js -->
-    <script src="js/components/video-card.js?v=2"></script>
+    <script src="js/components/video-card.js?v=3"></script>
     <script src="js/components/channel-column.js?v=4"></script>
 
-    <script src="js/app.js?v=2"></script>
+    <script src="js/app.js?v=3"></script>
 </head>
 <body x-data="{}" class="bg-gray-100 min-h-screen">
     <!-- Header -->
@@ -56,6 +56,10 @@
                         <span x-show="$store.stats.data" x-text="`${$store.stats.data ? $store.stats.data.total_channels : 0} channels`"></span>
                         <span x-show="$store.stats.data" x-text="`${$store.stats.data ? $store.stats.data.total_subscriptions : 0} subs`"></span>
                         <span x-show="$store.stats.data" x-text="`${$store.stats.data ? $store.stats.data.unwatched_videos : 0} unwatched`"></span>
+                        <!-- Last refresh timestamp -->
+                        <span x-show="$store.app.lastRefresh" x-text="`Updated ${$store.app.lastRefreshFormatted}`" class="text-xs text-gray-500"></span>
+                        <!-- Background refresh indicator -->
+                        <i x-show="$store.app.refreshing" class="fas fa-sync-alt fa-spin text-blue-500 text-sm" title="Refreshing..."></i>
                     </div>
                 </div>
 
