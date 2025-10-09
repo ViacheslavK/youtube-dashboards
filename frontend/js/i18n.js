@@ -3,8 +3,30 @@ class I18n {
     constructor() {
         this.locale = 'en';
         this.fallbackLocale = 'en';
-        this.translations = {};
-        this.loadedLocales = new Set();
+        this.translations = {
+            'en': {
+                'app': { 'name': 'YouTube Dashboard' },
+                'common': {
+                    'loading': 'Loading...',
+                    'sync': 'Sync',
+                    'admin': 'Admin',
+                    'error': 'Error'
+                },
+                'channels': {
+                    'add_channel': 'Add Channel',
+                    'no_channels': 'No configured channels',
+                    'setup_prompt': 'Run: python src/setup_channels.py'
+                },
+                'videos': {
+                    'clear_watched': 'Clear watched',
+                    'mark_watched': 'Mark as watched',
+                    'open': 'Open',
+                    'no_videos': 'No videos',
+                    'no_videos_desc': 'New videos will appear here'
+                }
+            }
+        };
+        this.loadedLocales = new Set(['en']);
     }
 
     async setLocale(locale) {
