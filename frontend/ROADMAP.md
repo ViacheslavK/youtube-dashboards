@@ -48,7 +48,7 @@
 
 - [x] Implement responsive grid layout (mobile/tablet/desktop)
 - [x] Add horizontal scroll indicators
-- [ ] Implement column reordering (drag & drop)
+- [x] Implement column reordering (drag & drop)
 - [x] Add empty state for no channels
 - [x] Add loading state for initial data load
 - [x] **Increased content area (85vw width, 95vh height)**
@@ -66,8 +66,8 @@
 - [x] Implement mark as watched with visual feedback
 - [x] Add video open in new tab/window
 - [x] **Implement comprehensive keyboard shortcuts**
-- [ ] Add video search/filter within columns
-- [ ] Add video sorting options (date, title, etc.)
+- [x] Add video search/filter within columns
+- [x] Add video sorting options (date, title, etc.)
 - [x] **Enhanced video marking with immediate UI feedback**
 
 ### Phase 3: OAuth Integration ⏳ PENDING

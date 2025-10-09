@@ -20,6 +20,10 @@ class ChannelColumn {
         this.loading = false;
         this.element = null;
         this.videoCards = new Map(); // Store video card instances
+        this.searchTerm = '';
+        this.sortBy = 'date';
+        this.sortOrder = 'desc'; // newest first
+        this.searchDebounceTimer = null;
         this.render();
     }
 
@@ -69,6 +73,40 @@ class ChannelColumn {
                                 title="Refresh videos">
                             <i class="fas fa-sync-alt text-xs"></i>
                         </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search and Sort Controls -->
+            <div class="px-4 py-2 bg-gray-50 border-b">
+                <div class="flex gap-2">
+                    <!-- Search Input -->
+                    <div class="flex-1 relative flex items-center">
+                        <input type="text"
+                               class="w-full pl-8 pr-8 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 search-input"
+                               placeholder="${t('videos.search_placeholder')}"
+                               value="${this.searchTerm}">
+                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-xs"></i>
+                        <button class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 clear-search-btn ${this.searchTerm ? '' : 'hidden'}"
+                                title="Clear search"
+                                type="button">
+                            <i class="fas fa-times text-xs"></i>
+                        </button>
+                    </div>
+
+                    <!-- Sort Dropdown -->
+                    <div class="relative">
+                        <select class="appearance-none bg-white border border-gray-300 rounded-md px-3 py-2 pr-8 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sort-select">
+                            <option value="date-desc" ${this.sortBy === 'date' && this.sortOrder === 'desc' ? 'selected' : ''} data-i18n-key="videos.sort_date_newest">${t('videos.sort_date_newest')}</option>
+                            <option value="date-asc" ${this.sortBy === 'date' && this.sortOrder === 'asc' ? 'selected' : ''} data-i18n-key="videos.sort_date_oldest">${t('videos.sort_date_oldest')}</option>
+                            <option value="title-asc" ${this.sortBy === 'title' && this.sortOrder === 'asc' ? 'selected' : ''} data-i18n-key="videos.sort_title_az">${t('videos.sort_title_az')}</option>
+                            <option value="title-desc" ${this.sortBy === 'title' && this.sortOrder === 'desc' ? 'selected' : ''} data-i18n-key="videos.sort_title_za">${t('videos.sort_title_za')}</option>
+                            <option value="views-desc" ${this.sortBy === 'views' && this.sortOrder === 'desc' ? 'selected' : ''} data-i18n-key="videos.sort_views_most">${t('videos.sort_views_most')}</option>
+                            <option value="views-asc" ${this.sortBy === 'views' && this.sortOrder === 'asc' ? 'selected' : ''} data-i18n-key="videos.sort_views_least">${t('videos.sort_views_least')}</option>
+                            <option value="duration-desc" ${this.sortBy === 'duration' && this.sortOrder === 'desc' ? 'selected' : ''} data-i18n-key="videos.sort_duration_longest">${t('videos.sort_duration_longest')}</option>
+                            <option value="duration-asc" ${this.sortBy === 'duration' && this.sortOrder === 'asc' ? 'selected' : ''} data-i18n-key="videos.sort_duration_shortest">${t('videos.sort_duration_shortest')}</option>
+                        </select>
+                        <i class="fas fa-chevron-down absolute right-3 top-3 text-gray-400 text-xs pointer-events-none"></i>
                     </div>
                 </div>
             </div>
@@ -132,6 +170,54 @@ class ChannelColumn {
         if (clearBtn) {
             clearBtn.addEventListener('click', () => {
                 this.handleClearWatched();
+            });
+        }
+
+        // Search input with debounce
+        const searchInput = this.element.querySelector('.search-input');
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                this.handleSearchInput(e.target.value);
+            });
+
+            // Update placeholder when language changes
+            Alpine.effect(() => {
+                const locale = Alpine.store('app').locale;
+                const version = Alpine.store('app').i18nVersion;
+                void locale; void version; // ensure dependencies
+                searchInput.placeholder = t('videos.search_placeholder');
+            });
+        }
+
+        // Sort select
+        const sortSelect = this.element.querySelector('.sort-select');
+        if (sortSelect) {
+            sortSelect.addEventListener('change', (e) => {
+                this.handleSortChange(e.target.value);
+            });
+
+            // Update option texts when language changes
+            Alpine.effect(() => {
+                const locale = Alpine.store('app').locale;
+                const version = Alpine.store('app').i18nVersion;
+                void locale; void version;
+                const options = sortSelect.querySelectorAll('option');
+                options.forEach(option => {
+                    const key = option.getAttribute('data-i18n-key');
+                    if (key) {
+                        option.textContent = t(key);
+                    }
+                });
+            });
+        }
+
+        // Clear search button
+        const clearSearchBtn = this.element.querySelector('.clear-search-btn');
+        if (clearSearchBtn) {
+            clearSearchBtn.addEventListener('click', () => {
+                this.handleSearchInput('');
+                const input = this.element.querySelector('.search-input');
+                if (input) input.value = '';
             });
         }
     }
@@ -442,6 +528,56 @@ class ChannelColumn {
         }
     }
 
+    // Filter videos based on search term
+    getFilteredVideos() {
+        if (!this.searchTerm) {
+            return this.videos;
+        }
+
+        return this.videos.filter(video => {
+            if (!video) return false;
+
+            const title = (video.title || '').toLowerCase();
+            const channelName = (video.channel_name || '').toLowerCase();
+
+            return title.includes(this.searchTerm) || channelName.includes(this.searchTerm);
+        });
+    }
+
+    // Sort videos based on current sort settings
+    getSortedVideos(videos) {
+        return [...videos].sort((a, b) => {
+            let aValue, bValue;
+
+            switch (this.sortBy) {
+                case 'date':
+                    aValue = new Date(a.published_at || 0);
+                    bValue = new Date(b.published_at || 0);
+                    break;
+                case 'title':
+                    aValue = (a.title || '').toLowerCase();
+                    bValue = (b.title || '').toLowerCase();
+                    break;
+                case 'views':
+                    aValue = parseInt(a.view_count) || 0;
+                    bValue = parseInt(b.view_count) || 0;
+                    break;
+                case 'duration':
+                    aValue = parseInt(a.duration) || 0;
+                    bValue = parseInt(b.duration) || 0;
+                    break;
+                default:
+                    return 0;
+            }
+
+            if (this.sortOrder === 'asc') {
+                return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+            } else {
+                return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+            }
+        });
+    }
+
     // Render videos in the container
     renderVideos() {
         const videosContainer = this.element.querySelector('.videos-list');
@@ -456,8 +592,12 @@ class ChannelColumn {
             emptyState.remove();
         }
 
+        // Get filtered and sorted videos
+        const filteredVideos = this.getFilteredVideos();
+        const sortedVideos = this.getSortedVideos(filteredVideos);
+
         // Add video cards with null checking
-        this.videos.forEach(video => {
+        sortedVideos.forEach(video => {
             // Skip null or invalid videos
             if (!video || !video.id || !video.youtube_video_id) {
                 console.warn('Skipping invalid video:', video);
@@ -479,6 +619,19 @@ class ChannelColumn {
                 console.error('Error creating video card:', error, video);
             }
         });
+
+        // Show empty state if no videos match filter
+        if (sortedVideos.length === 0 && this.videos.length > 0) {
+            videosContainer.innerHTML = `
+                <div class="text-center py-12 px-4">
+                    <i class="fas fa-search text-4xl text-gray-300 mb-3"></i>
+                    <h4 class="text-sm font-medium text-gray-900 mb-1">No videos found</h4>
+                    <p class="text-xs text-gray-500">Try adjusting your search or sort options</p>
+                </div>
+            `;
+        } else if (sortedVideos.length === 0 && this.videos.length === 0 && !this.loading) {
+            videosContainer.innerHTML = this.getEmptyState();
+        }
 
         // Update stats
         this.updateStats();
@@ -580,6 +733,35 @@ class ChannelColumn {
         }
     }
 
+    // Handle search input with debounce
+    handleSearchInput(value) {
+        this.searchTerm = value.trim().toLowerCase();
+
+        // Update clear button visibility
+        const clearBtn = this.element.querySelector('.clear-search-btn');
+        if (clearBtn) {
+            clearBtn.classList.toggle('hidden', !this.searchTerm);
+        }
+
+        // Clear existing timer
+        if (this.searchDebounceTimer) {
+            clearTimeout(this.searchDebounceTimer);
+        }
+
+        // Set new timer for 300ms debounce
+        this.searchDebounceTimer = setTimeout(() => {
+            this.renderVideos();
+        }, 300);
+    }
+
+    // Handle sort change
+    handleSortChange(value) {
+        const [sortBy, sortOrder] = value.split('-');
+        this.sortBy = sortBy;
+        this.sortOrder = sortOrder;
+        this.renderVideos();
+    }
+
     // Refresh videos
     async refreshVideos() {
         await this.loadVideos();
@@ -616,25 +798,31 @@ class ChannelColumn {
 
     // Update channel stats
     updateStats() {
-        // Update header stats
+        const filteredVideos = this.getFilteredVideos();
+        const filteredUnwatchedCount = filteredVideos.filter(v => !v.is_watched).length;
+        const totalUnwatchedCount = this.getUnwatchedCount();
+
+        // Update header stats - show filtered count if searching, otherwise total
         const statsElement = this.element.querySelector('.text-xs.text-gray-600');
         if (statsElement) {
-            const unwatchedCount = this.getUnwatchedCount();
-            statsElement.textContent = `${unwatchedCount} unwatched`;
+            if (this.searchTerm) {
+                statsElement.textContent = `${filteredUnwatchedCount} unwatched (${this.videos.length} total)`;
+            } else {
+                statsElement.textContent = `${totalUnwatchedCount} unwatched`;
+            }
         }
 
-        // Update clear button
+        // Update clear button - always based on total unwatched (clearing watched affects all)
         const clearBtn = this.element.querySelector('.clear-btn');
         if (clearBtn) {
-            const unwatchedCount = this.getUnwatchedCount();
             const span = clearBtn.querySelector('span');
             if (span) {
-                span.nextSibling.textContent = unwatchedCount > 0 ? ` (${unwatchedCount})` : '';
+                span.nextSibling.textContent = totalUnwatchedCount > 0 ? ` (${totalUnwatchedCount})` : '';
             }
 
-            clearBtn.classList.toggle('opacity-50', unwatchedCount === 0);
-            clearBtn.classList.toggle('cursor-not-allowed', unwatchedCount === 0);
-            clearBtn.disabled = unwatchedCount === 0;
+            clearBtn.classList.toggle('opacity-50', totalUnwatchedCount === 0);
+            clearBtn.classList.toggle('cursor-not-allowed', totalUnwatchedCount === 0);
+            clearBtn.disabled = totalUnwatchedCount === 0;
         }
     }
 

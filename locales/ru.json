@@ -128,7 +128,17 @@
     "no_videos_desc": "Новые видео появятся здесь",
     "recent_videos": "Последние {count} видео",
     "channel": "Канал: {channel}",
-    "published_duration": "Опубликовано: {date} | Длительность: {duration}"
+    "published_duration": "Опубликовано: {date} | Длительность: {duration}",
+    "search_placeholder": "Поиск видео...",
+    "sort_by": "Сортировать по",
+    "sort_date_newest": "Дате (новые)",
+    "sort_date_oldest": "Дате (старые)",
+    "sort_title_az": "Названию (А-Я)",
+    "sort_title_za": "Названию (Я-А)",
+    "sort_views_most": "Просмотрам (больше)",
+    "sort_views_least": "Просмотрам (меньше)",
+    "sort_duration_longest": "Длительности (дольше)",
+    "sort_duration_shortest": "Длительности (короче)"
   },
   
   "errors": {

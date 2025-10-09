@@ -22,7 +22,17 @@ class I18n {
                     'mark_watched': 'Mark as watched',
                     'open': 'Open',
                     'no_videos': 'No videos',
-                    'no_videos_desc': 'New videos will appear here'
+                    'no_videos_desc': 'New videos will appear here',
+                    'search_placeholder': 'Search videos...',
+                    'sort_by': 'Sort by',
+                    'sort_date_newest': 'Date (newest)',
+                    'sort_date_oldest': 'Date (oldest)',
+                    'sort_title_az': 'Title (A-Z)',
+                    'sort_title_za': 'Title (Z-A)',
+                    'sort_views_most': 'Views (most)',
+                    'sort_views_least': 'Views (least)',
+                    'sort_duration_longest': 'Duration (longest)',
+                    'sort_duration_shortest': 'Duration (shortest)'
                 },
                 'admin': {
                     'title': 'Admin Panel',
