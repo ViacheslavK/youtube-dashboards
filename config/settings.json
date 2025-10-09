@@ -7,7 +7,7 @@
   "auto_start_web_server": true,
   "open_browser_on_start": true,
   "log_level": "INFO",
-  "locale": "ru",
+  "locale": "en",
   "auto_refresh": true,
   "refresh_interval": 30
 }

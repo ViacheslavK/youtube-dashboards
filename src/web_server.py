@@ -15,6 +15,16 @@ from flask_cors import CORS
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import Flow
 
+# Development-only imports
+is_development = os.getenv('FLASK_ENV') == 'development'
+if is_development:
+    try:
+        from flasgger import Swagger, swag_from
+    except ImportError:
+        print("Warning: flasgger not installed. Install with: pip install flasgger")
+        Swagger = None
+        swag_from = None
+
 # Add the root folder to the path
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(current_dir)
@@ -35,6 +45,45 @@ CORS(app)  # Enable CORS for development
 
 # Set up session secret key
 app.secret_key = secrets.token_hex(32)
+
+# Initialize Swagger for development
+if is_development and Swagger:
+    # Simple Swagger configuration
+    swagger = Swagger(
+        app,
+        template={
+            "swagger": "2.0",
+            "info": {
+                "title": "SubDeck for YouTube API",
+                "description": "API for SubDeck application",
+                "version": "1.0.0"
+            },
+            "host": "localhost:8080",
+            "basePath": "/api",
+            "schemes": ["http"],
+            "consumes": ["application/json"],
+            "produces": ["application/json"]
+        },
+        config={
+            "headers": [],
+            "specs": [
+                {
+                    "endpoint": 'apispec',
+                    "route": '/apispec.json',
+                    "rule_filter": lambda rule: True,
+                    "model_filter": lambda tag: True,
+                }
+            ],
+            "static_url_path": "/flasgger_static",
+            "swagger_ui": True,
+            "specs_route": "/api/docs/"
+        }
+    )
+
+    # Force refresh the swagger spec to include all routes
+    @app.route('/api/docs/refresh')
+    def refresh_swagger():
+        return "Try restarting the server to refresh Swagger documentation"
 
 # Database
 db = Database()
@@ -80,6 +129,45 @@ def index():
 # === API Endpoints ===
 
 @app.route('/api/channels', methods=['GET'])
+@swag_from({
+    'tags': ['Channels'],
+    'summary': 'Get all personal channels',
+    'description': 'Retrieve a list of all configured personal YouTube channels with their statistics',
+    'responses': {
+        200: {
+            'description': 'List of personal channels',
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'success': {'type': 'boolean'},
+                    'data': {
+                        'type': 'array',
+                        'items': {
+                            'type': 'object',
+                            'properties': {
+                                'id': {'type': 'integer'},
+                                'name': {'type': 'string'},
+                                'youtube_channel_id': {'type': 'string'},
+                                'color': {'type': 'string'},
+                                'stats': {
+                                    'type': 'object',
+                                    'properties': {
+                                        'total_videos': {'type': 'integer'},
+                                        'unwatched_videos': {'type': 'integer'},
+                                        'subscriptions': {'type': 'integer'}
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        500: {
+            'description': 'Internal server error'
+        }
+    }
+})
 def get_channels():
     """Get all personal channels"""
     try:
@@ -110,6 +198,54 @@ def get_channels():
 
 
 @app.route('/api/channels/<int:channel_id>/videos', methods=['GET'])
+@swag_from({
+    'tags': ['Videos'],
+    'summary': 'Get videos for a specific channel',
+    'description': 'Retrieve videos for a specific personal channel',
+    'parameters': [
+        {
+            'name': 'channel_id',
+            'in': 'path',
+            'type': 'integer',
+            'required': True,
+            'description': 'ID of the personal channel'
+        },
+        {
+            'name': 'include_watched',
+            'in': 'query',
+            'type': 'boolean',
+            'description': 'Include watched videos in response'
+        }
+    ],
+    'responses': {
+        200: {
+            'description': 'List of videos for the channel',
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'success': {'type': 'boolean'},
+                    'data': {
+                        'type': 'array',
+                        'items': {
+                            'type': 'object',
+                            'properties': {
+                                'id': {'type': 'integer'},
+                                'title': {'type': 'string'},
+                                'youtube_video_id': {'type': 'string'},
+                                'published_at': {'type': 'string'},
+                                'duration': {'type': 'integer'},
+                                'is_watched': {'type': 'boolean'}
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        500: {
+            'description': 'Internal server error'
+        }
+    }
+})
 def get_channel_videos(channel_id):
     """Get videos for channel"""
     try:
@@ -133,6 +269,35 @@ def get_channel_videos(channel_id):
 
 
 @app.route('/api/videos/<int:video_id>/watch', methods=['POST'])
+@swag_from({
+    'tags': ['Videos'],
+    'summary': 'Mark video as watched',
+    'description': 'Mark a specific video as watched in the database',
+    'parameters': [
+        {
+            'name': 'video_id',
+            'in': 'path',
+            'type': 'integer',
+            'required': True,
+            'description': 'ID of the video to mark as watched'
+        }
+    ],
+    'responses': {
+        200: {
+            'description': 'Video marked as watched successfully',
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'success': {'type': 'boolean'},
+                    'message': {'type': 'string'}
+                }
+            }
+        },
+        500: {
+            'description': 'Internal server error'
+        }
+    }
+})
 def mark_video_watched(video_id):
     """Mark video as watched"""
     try:
@@ -193,6 +358,34 @@ def clear_watched_videos(channel_id):
 
 
 @app.route('/api/stats', methods=['GET'])
+@swag_from({
+    'tags': ['Statistics'],
+    'summary': 'Get application statistics',
+    'description': 'Retrieve overall statistics for the YouTube dashboard',
+    'responses': {
+        200: {
+            'description': 'Application statistics',
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'success': {'type': 'boolean'},
+                    'data': {
+                        'type': 'object',
+                        'properties': {
+                            'total_channels': {'type': 'integer'},
+                            'total_subscriptions': {'type': 'integer'},
+                            'total_videos': {'type': 'integer'},
+                            'unwatched_videos': {'type': 'integer'}
+                        }
+                    }
+                }
+            }
+        },
+        500: {
+            'description': 'Internal server error'
+        }
+    }
+})
 def get_stats():
     """Get overall statistics"""
     try:
@@ -611,6 +804,35 @@ def sync_videos():
 # === Settings ===
 
 @app.route('/api/settings', methods=['GET'])
+@swag_from({
+    'tags': ['Settings'],
+    'summary': 'Get application settings',
+    'description': 'Retrieve current application settings including locale, auto-refresh, etc.',
+    'responses': {
+        200: {
+            'description': 'Application settings',
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'success': {'type': 'boolean'},
+                    'data': {
+                        'type': 'object',
+                        'properties': {
+                            'locale': {'type': 'string'},
+                            'auto_refresh': {'type': 'boolean'},
+                            'refresh_interval': {'type': 'integer'},
+                            'web_server_port': {'type': 'integer'},
+                            'open_browser_on_start': {'type': 'boolean'}
+                        }
+                    }
+                }
+            }
+        },
+        500: {
+            'description': 'Internal server error'
+        }
+    }
+})
 def get_settings():
     """Get application settings"""
     try:
@@ -679,6 +901,38 @@ def update_settings():
 # === i18n ===
 
 @app.route('/api/i18n/<locale>', methods=['GET'])
+@swag_from({
+    'tags': ['Internationalization'],
+    'summary': 'Get translations for a locale',
+    'description': 'Retrieve translation strings for a specific locale',
+    'parameters': [
+        {
+            'name': 'locale',
+            'in': 'path',
+            'type': 'string',
+            'required': True,
+            'description': 'Locale code (e.g., en, ru)'
+        }
+    ],
+    'responses': {
+        200: {
+            'description': 'Translation data for the locale',
+            'schema': {
+                'type': 'object',
+                'properties': {
+                    'success': {'type': 'boolean'},
+                    'data': {'type': 'object'}
+                }
+            }
+        },
+        404: {
+            'description': 'Locale not found'
+        },
+        500: {
+            'description': 'Internal server error'
+        }
+    }
+})
 def get_translations(locale):
     """Get translations for a specific locale"""
     try:
@@ -728,8 +982,14 @@ def main():
     url = f'http://localhost:{port}'
 
     print("=" * 60)
-    print(t('app.name'))
+    print("SubDeck for YouTube")
     print("=" * 60)
+
+    if is_development:
+        print(f"[OK] Swagger UI available at: http://localhost:{port}/api/docs/")
+        print(f"[OK] API spec available at: http://localhost:{port}/apispec.json")
+        print(f"[OK] Development mode enabled - install flasgger for API docs")
+        print(f"[HINT] Restart server if Swagger UI is empty")
     print(f"\n[OK] Server starting on {url}")
     print(f"[OK] Press Ctrl+C to stop")
     print("=" * 60)
@@ -739,10 +999,14 @@ def main():
         webbrowser.open(url)
 
     # Launch Flask
+    # Set development environment variable for Swagger
+    if is_development:
+        os.environ['FLASK_ENV'] = 'development'
+
     app.run(
         host='0.0.0.0',
         port=port,
-        debug=False,
+        debug=is_development,  # Enable debug mode only in development
         threaded=True
     )
 

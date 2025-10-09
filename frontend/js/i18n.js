@@ -5,7 +5,7 @@ class I18n {
         this.fallbackLocale = 'en';
         this.translations = {
             'en': {
-                'app': { 'name': 'YouTube Dashboard' },
+                'app': { 'name': 'SubDeck for YouTube' },
                 'common': {
                     'loading': 'Loading...',
                     'sync': 'Sync',
