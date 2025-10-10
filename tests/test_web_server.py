@@ -10,6 +10,13 @@ import logging
 from unittest.mock import Mock, patch, MagicMock
 from pathlib import Path
 
+# Check if flasgger is available (development mode)
+try:
+    import flasgger
+    FLASGGER_AVAILABLE = True
+except ImportError:
+    FLASGGER_AVAILABLE = False
+
 
 @pytest.mark.unit
 class TestStaticRoutes:
@@ -19,6 +26,52 @@ class TestStaticRoutes:
     @patch('src.web_server.app')
     def test_index_route_serves_frontend(self, mock_app, mock_send_from_directory):
         """Test that index route serves frontend/index.html"""
+        from src.web_server import index
+
+        # Mock the static folder and send_from_directory
+        mock_app.static_folder = '/path/to/frontend'
+        mock_send_from_directory.return_value = 'index.html content'
+
+        # Call the function
+        result = index()
+
+        # Verify send_from_directory was called with correct parameters
+        mock_send_from_directory.assert_called_once_with('/path/to/frontend', 'index.html')
+        assert result == 'index.html content'
+
+
+@pytest.mark.unit
+@pytest.mark.skipif(not FLASGGER_AVAILABLE, reason="Flasgger not available")
+class TestStaticRoutesWithFlasgger:
+    """Tests for static file serving when flasgger is available"""
+
+    @patch('src.web_server.send_from_directory')
+    @patch('src.web_server.app')
+    def test_index_route_serves_frontend_with_flasgger(self, mock_app, mock_send_from_directory):
+        """Test that index route serves frontend/index.html when flasgger is available"""
+        from src.web_server import index
+
+        # Mock the static folder and send_from_directory
+        mock_app.static_folder = '/path/to/frontend'
+        mock_send_from_directory.return_value = 'index.html content'
+
+        # Call the function
+        result = index()
+
+        # Verify send_from_directory was called with correct parameters
+        mock_send_from_directory.assert_called_once_with('/path/to/frontend', 'index.html')
+        assert result == 'index.html content'
+
+
+@pytest.mark.unit
+@pytest.mark.skipif(FLASGGER_AVAILABLE, reason="Flasgger available")
+class TestStaticRoutesWithoutFlasgger:
+    """Tests for static file serving when flasgger is not available"""
+
+    @patch('src.web_server.send_from_directory')
+    @patch('src.web_server.app')
+    def test_index_route_serves_frontend_without_flasgger(self, mock_app, mock_send_from_directory):
+        """Test that index route serves frontend/index.html when flasgger is not available"""
         from src.web_server import index
 
         # Mock the static folder and send_from_directory
@@ -384,8 +437,9 @@ class TestErrorHandling:
 
 
 @pytest.mark.unit
+@pytest.mark.skipif(FLASGGER_AVAILABLE, reason="Flasgger available - development mode")
 class TestMainFunction:
-    """Tests for main server function"""
+    """Tests for main server function in non-development mode"""
 
     @patch('src.web_server.webbrowser.open')
     @patch('src.web_server.app.run')
@@ -442,5 +496,71 @@ class TestMainFunction:
                 host='0.0.0.0',
                 port=8080,
                 debug=False,
+                threaded=True
+            )
+
+
+@pytest.mark.unit
+@pytest.mark.skipif(not FLASGGER_AVAILABLE, reason="Flasgger not available - non-development mode")
+class TestMainFunctionDevelopment:
+    """Tests for main server function in development mode"""
+
+    @patch('src.web_server.is_development', True)
+    @patch('src.web_server.webbrowser.open')
+    @patch('src.web_server.app.run')
+    @patch('src.web_server.load_config')
+    @patch('src.web_server.print')
+    @patch('src.web_server.project_root', '/test/project')
+    def test_main_function_with_browser_development(self, mock_print, mock_load_config, mock_app_run, mock_webbrowser):
+        """Test main function opens browser when configured in development mode"""
+        from src.web_server import main
+
+        mock_load_config.return_value = {
+            'web_server_port': 9000,
+            'open_browser_on_start': True
+        }
+
+        # Mock KeyboardInterrupt to exit cleanly
+        with patch('builtins.input', side_effect=KeyboardInterrupt()):
+            main()
+
+            # Verify browser was opened
+            mock_webbrowser.assert_called_once_with('http://localhost:9000')
+
+            # Verify app.run was called with correct parameters (debug=True in development)
+            mock_app_run.assert_called_once_with(
+                host='0.0.0.0',
+                port=9000,
+                debug=True,
+                threaded=True
+            )
+
+    @patch('src.web_server.is_development', True)
+    @patch('src.web_server.webbrowser.open')
+    @patch('src.web_server.app.run')
+    @patch('src.web_server.load_config')
+    @patch('src.web_server.print')
+    @patch('src.web_server.project_root', '/test/project')
+    def test_main_function_without_browser_development(self, mock_print, mock_load_config, mock_app_run, mock_webbrowser):
+        """Test main function doesn't open browser when disabled in development mode"""
+        from src.web_server import main
+
+        mock_load_config.return_value = {
+            'web_server_port': 8080,
+            'open_browser_on_start': False
+        }
+
+        # Mock KeyboardInterrupt to exit cleanly
+        with patch('builtins.input', side_effect=KeyboardInterrupt()):
+            main()
+
+            # Verify browser was NOT opened
+            mock_webbrowser.assert_not_called()
+
+            # Verify app.run was called with correct parameters (debug=True in development)
+            mock_app_run.assert_called_once_with(
+                host='0.0.0.0',
+                port=8080,
+                debug=True,
                 threaded=True
             )

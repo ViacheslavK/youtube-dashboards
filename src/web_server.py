@@ -25,6 +25,19 @@ if is_development:
         Swagger = None
         swag_from = None
 
+# Conditional decorator helper
+def conditional_swag_from(spec):
+    """Apply swag_from decorator only if flasgger is available"""
+    def decorator(func):
+        try:
+            # Try to import swag_from
+            from flasgger import swag_from as _swag_from
+            return _swag_from(spec)(func)
+        except ImportError:
+            # If flasgger is not available, return the function unchanged
+            return func
+    return decorator
+
 # Add the root folder to the path
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(current_dir)
@@ -129,7 +142,7 @@ def index():
 # === API Endpoints ===
 
 @app.route('/api/channels', methods=['GET'])
-@swag_from({
+@conditional_swag_from({
     'tags': ['Channels'],
     'summary': 'Get all personal channels',
     'description': 'Retrieve a list of all configured personal YouTube channels with their statistics',
@@ -198,7 +211,7 @@ def get_channels():
 
 
 @app.route('/api/channels/<int:channel_id>/videos', methods=['GET'])
-@swag_from({
+@conditional_swag_from({
     'tags': ['Videos'],
     'summary': 'Get videos for a specific channel',
     'description': 'Retrieve videos for a specific personal channel',
@@ -269,7 +282,7 @@ def get_channel_videos(channel_id):
 
 
 @app.route('/api/videos/<int:video_id>/watch', methods=['POST'])
-@swag_from({
+@conditional_swag_from({
     'tags': ['Videos'],
     'summary': 'Mark video as watched',
     'description': 'Mark a specific video as watched in the database',
@@ -358,7 +371,7 @@ def clear_watched_videos(channel_id):
 
 
 @app.route('/api/stats', methods=['GET'])
-@swag_from({
+@conditional_swag_from({
     'tags': ['Statistics'],
     'summary': 'Get application statistics',
     'description': 'Retrieve overall statistics for the SubDeck for YouTube',
@@ -804,7 +817,7 @@ def sync_videos():
 # === Settings ===
 
 @app.route('/api/settings', methods=['GET'])
-@swag_from({
+@conditional_swag_from({
     'tags': ['Settings'],
     'summary': 'Get application settings',
     'description': 'Retrieve current application settings including locale, auto-refresh, etc.',
@@ -901,7 +914,7 @@ def update_settings():
 # === i18n ===
 
 @app.route('/api/i18n/<locale>', methods=['GET'])
-@swag_from({
+@conditional_swag_from({
     'tags': ['Internationalization'],
     'summary': 'Get translations for a locale',
     'description': 'Retrieve translation strings for a specific locale',
