@@ -78,7 +78,7 @@ def create_new_migration(name: str):
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Manage YouTube Dashboard database migrations'
+        description='Manage SubDeck for YouTube database migrations'
     )
     
     subparsers = parser.add_subparsers(dest='command', help='Commands')

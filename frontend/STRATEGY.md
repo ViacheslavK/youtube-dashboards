@@ -1,6 +1,6 @@
-📋 YouTube Dashboard Frontend Implementation Plan
+📋 SubDeck for YouTube Frontend Implementation Plan
 🎯 Executive Summary
-This plan outlines the complete implementation of a modern web frontend for the YouTube Dashboard project, featuring:
+This plan outlines the complete implementation of a modern web frontend for the SubDeck for YouTube project, featuring:
 
 Tweetdeck-style multi-column layout for video viewing
 Full OAuth integration for channel management
@@ -63,7 +63,7 @@ frontend/
 🎨 UI Design & Layout
 1. Main Dashboard (Tweetdeck-style)
 ┌─────────────────────────────────────────────────────────────┐
-│ 🎬 YouTube Dashboard    [🔄 Sync] [⚙️ Admin] [🌐 EN/RU]    │
+│ 🎬 SubDeck for YouTube    [🔄 Sync] [⚙️ Admin] [🌐 EN/RU]    │
 ├─────────────────────────────────────────────────────────────┤
 │ 📊 Stats: 7 Channels | 350 Subs | 1,234 Videos | 89 Unwatched│
 ├─────────────────────────────────────────────────────────────┤
@@ -708,7 +708,7 @@ describe('APIClient', () => {
 // Test i18n
 describe('I18n', () => {
     test('translates keys correctly', () => {
-        expect(i18n.t('app.name')).toBe('YouTube Dashboard');
+        expect(i18n.t('app.name')).toBe('SubDeck for YouTube');
     });
 });
 Integration Tests

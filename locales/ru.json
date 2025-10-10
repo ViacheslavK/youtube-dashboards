@@ -24,7 +24,7 @@
   
   "setup": {
     "title": "Настройка личных каналов",
-    "welcome": "Добро пожаловать в YouTube Dashboard!",
+    "welcome": "Добро пожаловать в SubDeck for YouTube!",
     "channels_count": "Сколько личных каналов вы хотите добавить?",
     "channel_name": "Название канала (например, 'Технологии', 'Музыка')",
     "auth_opening": "Откроется браузер для авторизации...",
@@ -284,7 +284,7 @@
     "database_ok": "База данных работает!",
     "database_error": "Ошибка: {error}",
     "database_problem": "Проблема с базой данных!",
-    "title": "YouTube Dashboard - Проверка установки",
+    "title": "SubDeck for YouTube - Проверка установки",
     "check_complete": "Всё готово к работе!",
     "next_channels": "Следующие шаги:",
     "run_setup_channels": "1. python setup_channels.py  - Настроить личные каналы",

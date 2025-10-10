@@ -1,26 +1,26 @@
 #!/usr/bin/env python3
 """
-Управление подписками (просмотр неактивных, удаление из истории)
+Subscription management (view inactive, delete from history)
 """
 
 import sys
 import os
 from datetime import datetime
 
-# Добавляем корневую папку проекта в путь
+# Add project root folder to path
 current_dir = os.path.dirname(os.path.abspath(__file__))  # utils/
-project_root = os.path.dirname(current_dir)  # корень проекта
+project_root = os.path.dirname(current_dir)  # project root
 sys.path.insert(0, project_root)
 
 from src.db_manager import Database
 from locales import t, load_locale_from_config
 
-# Загружаем локаль из настроек
+# Load locale from settings
 load_locale_from_config()
 
 
 def view_inactive_subscriptions():
-    """Показать неактивные подписки"""
+    """Show inactive subscriptions"""
     db = Database()
     channels = db.get_all_personal_channels()
 
@@ -31,7 +31,7 @@ def view_inactive_subscriptions():
     total_inactive = 0
 
     for channel in channels:
-        # Получаем только неактивные
+        # Get only inactive ones
         all_subs = db.get_subscriptions_by_channel(channel['id'], include_inactive=True)
         inactive_subs = [s for s in all_subs if not s['is_active']]
 
@@ -55,7 +55,7 @@ def view_inactive_subscriptions():
 
 
 def delete_inactive_interactive():
-    """Интерактивное удаление неактивных подписок"""
+    """Interactive deletion of inactive subscriptions"""
     db = Database()
     channels = db.get_all_personal_channels()
 
@@ -92,7 +92,7 @@ def delete_inactive_interactive():
 
 
 def delete_all_inactive():
-    """Удалить все неактивные подписки"""
+    """Delete all inactive subscriptions"""
     db = Database()
     channels = db.get_all_personal_channels()
 
@@ -110,7 +110,7 @@ def delete_all_inactive():
 
 
 def view_statistics():
-    """Статистика по подпискам"""
+    """Subscription statistics"""
     db = Database()
     channels = db.get_all_personal_channels()
 
@@ -128,7 +128,7 @@ def view_statistics():
         active = len([s for s in all_subs if s['is_active']])
         inactive = len([s for s in all_subs if not s['is_active']])
 
-        # Подсчитываем удалённые (требует отдельного запроса)
+        # Count deleted ones (requires separate query)
         conn = db.get_connection()
         cursor = conn.cursor()
         cursor.execute('''
@@ -196,10 +196,10 @@ if __name__ == '__main__':
     try:
         main()
     except KeyboardInterrupt:
-        print("\n\n⚠️  Прервано пользователем")
+        print("\n\n⚠️  Interrupted by user")
         sys.exit(0)
     except Exception as e:
-        print(f"\n❌ Ошибка: {e}")
+        print(f"\n❌ Error: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)

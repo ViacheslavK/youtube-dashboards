@@ -1,6 +1,6 @@
 # GitHub Actions Workflows
 
-## Автоматизация CI/CD для YouTube Dashboard
+## Автоматизация CI/CD для SubDeck for YouTube
 
 ### 📋 Workflows
 

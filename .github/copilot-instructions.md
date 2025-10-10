@@ -2,7 +2,7 @@
 # Copilot Instructions for AI Coding Agents
 
 ## Project Overview
-YouTube Dashboard tracks videos across multiple personal YouTube channels. The project is Python-based, uses SQLite, and integrates with YouTube Data API v3.
+SubDeck for YouTube tracks videos across multiple personal YouTube channels. The project is Python-based, uses SQLite, and integrates with YouTube Data API v3.
 
 ## Architecture & Key Components
 - **src/**: Main code (`db_manager.py`, `youtube_api.py`, `setup_channels.py`, `sync_subscriptions.py`)

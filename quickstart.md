@@ -1,150 +1,150 @@
-# Быстрый старт
+# Quick Start
 
-## 1. Установка зависимостей
+## 1. Install Dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## 2. Получение OAuth Credentials
+## 2. Get OAuth Credentials
 
-### Быстрая инструкция:
+### Quick Instructions:
 
 1. **Google Cloud Console**: https://console.cloud.google.com/
-2. **Создать проект** (или выбрать существующий)
-3. **Включить API**:
-   - Меню → "APIs & Services" → "Library"
-   - Найти "YouTube Data API v3"
-   - Нажать "Enable"
-4. **Создать Credentials**:
+2. **Create project** (or select existing)
+3. **Enable API**:
+   - Menu → "APIs & Services" → "Library"
+   - Find "YouTube Data API v3"
+   - Click "Enable"
+4. **Create Credentials**:
    - "APIs & Services" → "Credentials"
    - "+ CREATE CREDENTIALS" → "OAuth client ID"
-   - Если нужно, настроить "OAuth consent screen":
+   - If needed, configure "OAuth consent screen":
      - User Type: **External**
-     - App name: YouTube Dashboard
-     - Email: ваш email
-     - Сохранить
+     - App name: SubDeck for YouTube
+     - Email: your email
+     - Save
    - Application type: **Desktop app**
-   - Имя: YouTube Dashboard
-   - Скачать JSON
-5. **Сохранить файл** как `config/client_secrets.json`
+   - Name: SubDeck for YouTube
+   - Download JSON
+5. **Save file** as `config/client_secrets.json`
 
-## 3. Проверка установки
+## 3. Installation Check
 
 ```bash
 python test_setup.py
 ```
 
-Скрипт проверит:
-- ✓ Установлены ли все зависимости
-- ✓ Создана ли структура папок
-- ✓ Есть ли файл credentials
-- ✓ Работает ли база данных
+The script will check:
+- ✓ Are all dependencies installed
+- ✓ Is the folder structure created
+- ✓ Is there a credentials file
+- ✓ Is the database working
 
-## 4. Настройка каналов
+## 4. Channel Setup
 
 ```bash
 python src/setup_channels.py
 ```
 
-Для каждого канала:
-1. Введите название (например, "Технологии")
-2. Откроется браузер для OAuth
-3. Выберите Google аккаунт
-4. Разрешите доступ (read-only)
-5. Вернитесь в терминал
+For each channel:
+1. Enter name (e.g., "Technology")
+2. Browser will open for OAuth
+3. Select Google account
+4. Grant access (read-only)
+5. Return to terminal
 
-**Совет**: Подготовьте список названий для 7 каналов заранее.
+**Tip**: Prepare a list of names for 7 channels in advance.
 
-## 5. Загрузка видео
+## 5. Video Loading
 
 ```bash
 python src/sync_subscriptions.py
 ```
 
-Выберите опцию **3** для полной синхронизации (при первом запуске).
+Choose option **3** for full synchronization (on first run).
 
-Это загрузит:
-- Все подписки с каждого канала
-- Последние 5 видео с каждой подписки
+This will load:
+- All subscriptions from each channel
+- Latest 5 videos from each subscription
 
-**Время выполнения**: ~5-10 минут (зависит от количества подписок)
+**Execution time**: ~5-10 minutes (depends on number of subscriptions)
 
-## Готово! 🎉
+## Done! 🎉
 
-Теперь у вас есть:
-- ✓ 7 настроенных личных каналов
-- ✓ Все подписки в базе данных
-- ✓ Последние видео со всех подписок
+Now you have:
+- ✓ 7 configured personal channels
+- ✓ All subscriptions in database
+- ✓ Latest videos from all subscriptions
 
-### Следующие шаги:
+### Next steps:
 
 ```bash
-# Просмотр статистики
+# View statistics
 python utils/view_stats.py
 
-# Просмотр ошибок (если были)
+# View errors (if any)
 python utils/view_errors.py
 
-# Управление подписками
+# Manage subscriptions
 python utils/manage_subscriptions.py
 ```
 
 ---
 
-## Устранение проблем
+## Troubleshooting
 
 ### "client_secrets.json not found"
-→ Проверьте путь: должен быть `config/client_secrets.json`
+→ Check path: should be `config/client_secrets.json`
 
-### Ошибка OAuth в браузере
-→ Убедитесь, что YouTube Data API v3 включен в вашем проекте
+### OAuth Error in Browser
+→ Make sure YouTube Data API v3 is enabled in your project
 
-### "Invalid grant" при авторизации
-→ Удалите старые токены: `rm -rf config/youtube_credentials/*`
-→ Запустите setup_channels.py снова
+### "Invalid grant" during authorization
+→ Delete old tokens: `rm -rf config/youtube_credentials/*`
+→ Run setup_channels.py again
 
-### Квоты исчерпаны
-→ YouTube API: 10,000 units/день (бесплатно)
-→ Полная синхронизация: ~700-800 units
-→ Подождите до следующего дня
+### Quotas exhausted
+→ YouTube API: 10,000 units/day (free)
+→ Full synchronization: ~700-800 units
+→ Wait until next day
 
 ---
 
-## Полезные команды
+## Useful commands
 
 ```bash
-# Проверка статуса
+# Check status
 python test_setup.py
 
-# Добавить новые каналы
+# Add new channels
 python setup_channels.py
 
-# Обновить подписки
-python sync_subscriptions.py  # выбрать опцию 1
+# Update subscriptions
+python sync_subscriptions.py  # choose option 1
 
-# Загрузить новые видео
-python sync_subscriptions.py  # выбрать опцию 2
+# Load new videos
+python sync_subscriptions.py  # choose option 2
 
-# Полная синхронизация
-python sync_subscriptions.py  # выбрать опцию 3
+# Full synchronization
+python sync_subscriptions.py  # choose option 3
 ```
 
-## Проверка данных
+## Data verification
 
 ```python
 from database import Database
 
 db = Database()
 
-# Личные каналы
+# Personal channels
 channels = db.get_all_personal_channels()
 for ch in channels:
     print(f"{ch['name']}: {ch['youtube_channel_id']}")
 
-# Видео для канала #1
+# Videos for channel #1
 videos = db.get_videos_by_personal_channel(1)
-print(f"Всего видео: {len(videos)}")
-for v in videos[:5]:  # Первые 5
+print(f"Total videos: {len(videos)}")
+for v in videos[:5]:  # First 5
     print(f"  - {v['title']}")
 ```

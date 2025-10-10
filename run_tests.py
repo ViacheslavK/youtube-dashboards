@@ -58,7 +58,7 @@ def run_tests(test_type='all', coverage=False, verbose=False):
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Run YouTube Dashboard tests'
+        description='Run SubDeck for YouTube tests'
     )
     
     parser.add_argument(

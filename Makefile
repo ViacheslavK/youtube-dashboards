@@ -1,17 +1,17 @@
 .PHONY: help install install-dev test test-unit test-integration test-cov clean lint format
 
 help:
-	@echo "YouTube Dashboard - Команды разработки"
+	@echo "SubDeck for YouTube - Development commands"
 	@echo ""
-	@echo "  make install        - Установить зависимости"
-	@echo "  make install-dev    - Установить dev зависимости"
-	@echo "  make test           - Запустить все тесты"
-	@echo "  make test-unit      - Запустить только unit тесты"
-	@echo "  make test-integration - Запустить интеграционные тесты"
-	@echo "  make test-cov       - Тесты с coverage отчётом"
-	@echo "  make lint           - Проверить код (flake8)"
-	@echo "  make format         - Форматировать код (black)"
-	@echo "  make clean          - Очистить временные файлы"
+	@echo "  make install        - Install dependencies"
+	@echo "  make install-dev    - Install dev dependencies"
+	@echo "  make test           - Run all tests"
+	@echo "  make test-unit      - Run only unit tests"
+	@echo "  make test-integration - Run integration tests"
+	@echo "  make test-cov       - Tests with coverage report"
+	@echo "  make lint           - Check code (flake8)"
+	@echo "  make format         - Format code (black)"
+	@echo "  make clean          - Clean temporary files"
 
 install:
 	pip install -r requirements.txt

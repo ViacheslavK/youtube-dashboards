@@ -1,18 +1,18 @@
-# Основные зависимости
+# Main dependencies
 -r requirements.txt
 
-# Тестирование
+# Testing
 pytest==7.4.3
 pytest-cov==4.1.0
 pytest-mock==3.12.0
 
-# Моки для HTTP запросов
+# HTTP request mocks
 responses==0.24.1
 
-# Линтеры и форматтеры (опционально)
+# Linters and formatters (optional)
 flake8==6.1.0
 black==25.9.0
 mypy==1.18.2
 
-# API документация (только для разработки)
+# API documentation (development only)
 flasgger==0.9.7.1

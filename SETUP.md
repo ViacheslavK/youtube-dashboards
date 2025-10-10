@@ -1,4 +1,4 @@
-# 🚀 YouTube Dashboard Setup Instructions
+# 🚀 SubDeck for YouTube Setup Instructions
 
 ## 📋 Prerequisites
 

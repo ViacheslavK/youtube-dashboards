@@ -1,4 +1,4 @@
-// Alpine.js Stores for YouTube Dashboard
+// Alpine.js Stores for SubDeck for YouTube
 document.addEventListener('alpine:init', () => {
 
     // === App Store - Global Application State ===

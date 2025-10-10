@@ -1,4 +1,4 @@
-// Main application logic for YouTube Dashboard
+// Main application logic for SubDeck for YouTube
 // Note: initializeApp is now called from index.html on alpine:init
 
 async function initializeApp() {

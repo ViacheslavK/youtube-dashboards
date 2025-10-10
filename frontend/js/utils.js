@@ -1,4 +1,4 @@
-// Utility functions for YouTube Dashboard
+// Utility functions for SubDeck for YouTube
 
 // Global toast manager variable
 let toastManager = null;

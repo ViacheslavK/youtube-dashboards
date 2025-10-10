@@ -1,4 +1,4 @@
-# 🚀 YouTube Dashboard Frontend Implementation Roadmap
+# 🚀 SubDeck for YouTube Frontend Implementation Roadmap
 
 ## 📊 Progress Overview
 

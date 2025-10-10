@@ -1,3 +1,3 @@
 """
-YouTube Dashboard - Tests Package
+SubDeck for YouTube - Tests Package
 """

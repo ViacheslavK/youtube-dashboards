@@ -1,4 +1,4 @@
-// Video Card Component for YouTube Dashboard
+// Video Card Component for SubDeck for YouTube
 class VideoCard {
     constructor(videoData, onWatch, onOpen) {
         this.video = videoData;

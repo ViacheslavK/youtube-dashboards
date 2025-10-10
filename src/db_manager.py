@@ -8,7 +8,7 @@ import os
 class Database:
     def __init__(self, db_path: str = "database/videos.db"):
         self.db_path = db_path
-        # Создаём папку для БД, если её нет
+        # Create DB folder if it doesn't exist
         os.makedirs(os.path.dirname(db_path), exist_ok=True)
         self.init_database()
     
@@ -18,11 +18,11 @@ class Database:
         return conn
     
     def init_database(self):
-        """Создание таблиц базы данных"""
+        """Creating database tables"""
         conn = self.get_connection()
         cursor = conn.cursor()
         
-        # Личные каналы пользователя
+        # User's personal channels
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS personal_channels (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -36,7 +36,7 @@ class Database:
             )
         ''')
         
-        # Подписки (каналы на которые подписаны личные каналы)
+        # Subscriptions (channels that personal channels are subscribed to)
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS subscriptions (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -53,13 +53,13 @@ class Database:
             )
         ''')
         
-        # Индекс для быстрого поиска активных подписок
+        # Index for fast search of active subscriptions
         cursor.execute('''
             CREATE INDEX IF NOT EXISTS idx_subscriptions_active 
             ON subscriptions(personal_channel_id, is_active, deleted_by_user)
         ''')
         
-        # Видео
+        # Videos
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS videos (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -79,7 +79,7 @@ class Database:
             )
         ''')
         
-        # Индексы для оптимизации
+        # Indexes for optimization
         cursor.execute('''
             CREATE INDEX IF NOT EXISTS idx_videos_watched 
             ON videos(is_watched, published_at DESC)
@@ -90,7 +90,7 @@ class Database:
             ON videos(subscription_id, published_at DESC)
         ''')
         
-        # Таблица для логирования ошибок синхронизации
+        # Table for logging sync errors
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS sync_errors (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -119,7 +119,7 @@ class Database:
     def add_personal_channel(self, name: str, youtube_channel_id: str, 
                             oauth_token_path: str, color: str = '#3b82f6',
                             order_position: int = None) -> int:
-        """Добавление личного канала"""
+        """Adding personal channel"""
         conn = self.get_connection()
         cursor = conn.cursor()
         
@@ -140,7 +140,7 @@ class Database:
         return channel_id
     
     def get_all_personal_channels(self) -> List[Dict]:
-        """Получение всех личных каналов"""
+        """Getting all personal channels"""
         conn = self.get_connection()
         cursor = conn.cursor()
 
@@ -154,7 +154,7 @@ class Database:
         return channels
     
     def update_authuser_index(self, channel_id: int, authuser_index: int):
-        """Обновление authuser индекса для канала"""
+        """Updating authuser index for channel"""
         conn = self.get_connection()
         cursor = conn.cursor()
 
@@ -168,7 +168,7 @@ class Database:
         conn.close()
 
     def update_channel_order(self, channel_id: int, order_position: int) -> bool:
-        """Обновление позиции канала в списке"""
+        """Updating channel position in list"""
         conn = self.get_connection()
         cursor = conn.cursor()
 
@@ -188,7 +188,7 @@ class Database:
     
     def add_subscription(self, personal_channel_id: int, youtube_channel_id: str,
                         channel_name: str, channel_thumbnail: str = None) -> int:
-        """Добавление подписки"""
+        """Adding subscription"""
         conn = self.get_connection()
         cursor = conn.cursor()
         
@@ -202,7 +202,7 @@ class Database:
             subscription_id = cursor.lastrowid
             conn.commit()
         except sqlite3.IntegrityError:
-            # Подписка уже существует
+            # Subscription already exists
             cursor.execute('''
                 SELECT id FROM subscriptions 
                 WHERE personal_channel_id = ? AND youtube_channel_id = ?
@@ -214,7 +214,7 @@ class Database:
     
     def get_subscriptions_by_channel(self, personal_channel_id: int, 
                                      include_inactive: bool = False) -> List[Dict]:
-        """Получение подписок для личного канала"""
+        """Getting subscriptions for personal channel"""
         conn = self.get_connection()
         cursor = conn.cursor()
         
@@ -233,18 +233,18 @@ class Database:
         return subscriptions
     
     def deactivate_subscription(self, subscription_id: int):
-        """Деактивировать подписку и удалить её видео"""
+        """Deactivate subscription and delete its videos"""
         conn = self.get_connection()
         cursor = conn.cursor()
         
-        # Деактивируем подписку
+        # Deactivate subscription
         cursor.execute('''
             UPDATE subscriptions 
             SET is_active = 0, deactivated_at = ? 
             WHERE id = ?
         ''', (datetime.now().isoformat(), subscription_id))
         
-        # Удаляем все видео этой подписки
+        # Delete all videos of this subscription
         cursor.execute('''
             DELETE FROM videos 
             WHERE subscription_id = ?
@@ -254,7 +254,7 @@ class Database:
         conn.close()
     
     def reactivate_subscription(self, subscription_id: int):
-        """Реактивировать подписку"""
+        """Reactivate subscription"""
         conn = self.get_connection()
         cursor = conn.cursor()
         
@@ -268,7 +268,7 @@ class Database:
         conn.close()
     
     def mark_subscription_deleted(self, subscription_id: int):
-        """Пометить подписку как удалённую пользователем (для истории)"""
+        """Mark subscription as deleted by user (for history)"""
         conn = self.get_connection()
         cursor = conn.cursor()
         
@@ -284,21 +284,21 @@ class Database:
     def sync_subscriptions_status(self, personal_channel_id: int, 
                                   current_youtube_ids: List[str]) -> Dict:
         """
-        Синхронизация статуса подписок с YouTube
-        
+        Sync subscription status with YouTube
+
         Args:
-            personal_channel_id: ID личного канала
-            current_youtube_ids: Список актуальных YouTube channel IDs из API
-            
+            personal_channel_id: Personal channel ID
+            current_youtube_ids: List of current YouTube channel IDs from API
+
         Returns:
-            Статистика: {'activated': int, 'deactivated': int, 'unchanged': int}
+            Statistics: {'activated': int, 'deactivated': int, 'unchanged': int}
         """
         conn = self.get_connection()
         cursor = conn.cursor()
         
         stats = {'activated': 0, 'deactivated': 0, 'unchanged': 0}
         
-        # Получаем текущие подписки из БД
+        # Get current subscriptions from DB
         cursor.execute('''
             SELECT id, youtube_channel_id, is_active 
             FROM subscriptions 
@@ -307,20 +307,20 @@ class Database:
         
         db_subscriptions = {row['youtube_channel_id']: row for row in cursor.fetchall()}
         
-        # Проверяем каждую подписку из БД
+        # Check each subscription from DB
         for yt_id, sub in db_subscriptions.items():
             if yt_id in current_youtube_ids:
-                # Подписка активна на YouTube
+                # Subscription active on YouTube
                 if not sub['is_active']:
-                    # Реактивируем
+                    # Reactivate
                     self.reactivate_subscription(sub['id'])
                     stats['activated'] += 1
                 else:
                     stats['unchanged'] += 1
             else:
-                # Подписка пропала из YouTube
+                # Subscription disappeared from YouTube
                 if sub['is_active']:
-                    # Деактивируем
+                    # Deactivate
                     self.deactivate_subscription(sub['id'])
                     stats['deactivated'] += 1
         
@@ -333,7 +333,7 @@ class Database:
                   title: str, thumbnail: str, published_at: str,
                   duration: str = None, description: str = None,
                   view_count: int = None) -> Optional[int]:
-        """Добавление нового видео"""
+        """Adding new video"""
         conn = self.get_connection()
         cursor = conn.cursor()
         
@@ -351,13 +351,13 @@ class Database:
             conn.close()
             return video_id
         except sqlite3.IntegrityError:
-            # Видео уже существует
+            # Video already exists
             conn.close()
             return None
     
     def get_videos_by_personal_channel(self, personal_channel_id: int, 
                                        include_watched: bool = True) -> List[Dict]:
-        """Получение всех видео для личного канала (только с активных подписок)"""
+        """Getting all videos for personal channel (only from active subscriptions)"""
         conn = self.get_connection()
         cursor = conn.cursor()
         
@@ -383,7 +383,7 @@ class Database:
         return videos
     
     def mark_video_watched(self, video_id: int):
-        """Отметить видео как просмотренное"""
+        """Mark video as watched"""
         conn = self.get_connection()
         cursor = conn.cursor()
         
@@ -397,7 +397,7 @@ class Database:
         conn.close()
     
     def clear_watched_videos(self, personal_channel_id: int):
-        """Очистить просмотренные видео для личного канала"""
+        """Clear watched videos for personal channel"""
         conn = self.get_connection()
         cursor = conn.cursor()
         
@@ -414,7 +414,7 @@ class Database:
         conn.close()
     
     def get_video_by_id(self, video_id: int) -> Optional[Dict]:
-        """Получение видео по ID с информацией о личном канале"""
+        """Getting video by ID with personal channel information"""
         conn = self.get_connection()
         cursor = conn.cursor()
         
@@ -435,7 +435,7 @@ class Database:
     
     def log_sync_error(self, personal_channel_id: int, subscription_id: Optional[int],
                        channel_name: str, error_type: str, error_message: str):
-        """Логирование ошибки синхронизации"""
+        """Logging sync error"""
         conn = self.get_connection()
         cursor = conn.cursor()
         
@@ -449,7 +449,7 @@ class Database:
         conn.close()
     
     def get_unresolved_errors(self, personal_channel_id: Optional[int] = None) -> List[Dict]:
-        """Получение нерешённых ошибок"""
+        """Getting unresolved errors"""
         conn = self.get_connection()
         cursor = conn.cursor()
         
@@ -471,7 +471,7 @@ class Database:
         return errors
     
     def mark_error_resolved(self, error_id: int):
-        """Отметить ошибку как решённую"""
+        """Mark error as resolved"""
         conn = self.get_connection()
         cursor = conn.cursor()
         
@@ -485,7 +485,7 @@ class Database:
         conn.close()
     
     def clear_old_errors(self, days: int = 30):
-        """Удалить старые решённые ошибки"""
+        """Delete old resolved errors"""
         conn = self.get_connection()
         cursor = conn.cursor()
         

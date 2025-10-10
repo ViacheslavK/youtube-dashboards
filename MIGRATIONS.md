@@ -1,97 +1,97 @@
-# Руководство по миграциям базы данных
+# Database Migrations Guide
 
-## Концепция
+## Concept
 
-YouTube Dashboard использует систему версионированных миграций для управления изменениями схемы базы данных.
+SubDeck for YouTube uses a versioned migration system to manage database schema changes.
 
-### Принципы:
+### Principles:
 
-1. **Каждая миграция** = отдельный файл с номером версии
-2. **Последовательное применение** - миграции применяются по порядку
-3. **Идемпотентность** - можно запускать повторно безопасно
-4. **Только добавление** - миграции не удаляют данные пользователя
-5. **Отслеживание версий** - таблица `schema_version` хранит историю
+1. **Each migration** = separate file with version number
+2. **Sequential application** - migrations are applied in order
+3. **Idempotency** - can be run repeatedly safely
+4. **Add-only** - migrations don't delete user data
+5. **Version tracking** - `schema_version` table stores history
 
-## Использование
+## Usage
 
-### Проверить статус миграций
+### Check migration status
 
 ```bash
 python migrate.py status
 ```
 
-Показывает:
-- Текущую версию схемы БД
-- Доступные миграции
-- Неприменённые миграции
-- Историю применённых миграций
+Shows:
+- Current database schema version
+- Available migrations
+- Unapplied migrations
+- History of applied migrations
 
-### Применить все миграции
+### Apply all migrations
 
 ```bash
 python migrate.py up
 ```
 
-Применяет все неприменённые миграции последовательно.
+Applies all unapplied migrations sequentially.
 
-### Применить до конкретной версии
+### Apply up to specific version
 
 ```bash
 python migrate.py up --target 3
 ```
 
-Применяет миграции до версии 3 включительно.
+Applies migrations up to version 3 inclusive.
 
-## Сценарий обновления приложения
+## Application Update Scenario
 
-### Ситуация: Пользователь обновляется с версии 1.0 до 3.0
+### Situation: User upgrades from version 1.0 to 3.0
 
 ```
 Версия 1.0 (схема v1) → Версия 2.0 (схема v2) → Версия 3.0 (схема v3)
 ```
 
-**Что происходит:**
+**What happens:**
 
-1. Пользователь скачивает версию 3.0
-2. При первом запуске (или вручную) выполняет: `python migrate.py up`
-3. Система определяет текущую версию БД: `v1`
-4. Применяет миграции: `v1 → v2 → v3` последовательно
-5. Данные пользователя сохраняются, добавляются только новые поля/таблицы
+1. User downloads version 3.0
+2. On first run (or manually) executes: `python migrate.py up`
+3. System determines current DB version: `v1`
+4. Applies migrations: `v1 → v2 → v3` sequentially
+5. User data is preserved, only new fields/tables are added
 
-**Безопасность:**
-- Если миграция v2 не удалась → процесс останавливается
-- Пользователь может исправить проблему и запустить снова
-- Уже применённые миграции пропускаются
+**Safety:**
+- If migration v2 fails → process stops
+- User can fix the problem and run again
+- Already applied migrations are skipped
 
-## Создание новой миграции
+## Creating a new migration
 
-### Автоматическое создание шаблона
+### Automatic template creation
 
 ```bash
 python migrate.py create add_user_settings
 ```
 
-Создаст файл: `migrations/004_add_user_settings.py`
+Will create file: `migrations/004_add_user_settings.py`
 
-### Структура миграции
+### Migration structure
 
 ```python
 """
-Миграция 004: Add User Settings
+Migration 004: Add User Settings
 
-Описание изменений
+Description of changes
 """
 
 def upgrade(cursor):
-    """Применение миграции"""
+    """Apply migration"""
     
-    # Добавление поля
+    # Adding field
     cursor.execute('''
         ALTER TABLE personal_channels 
         ADD COLUMN default_view TEXT DEFAULT 'grid'
     ''')
     
-    # Создание таблицы
+    # Creating table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS user_settings (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -100,16 +100,16 @@ def upgrade(cursor):
         )
     ''')
     
-    # Создание индекса
+    # Creating index
     cursor.execute('''
         CREATE INDEX IF NOT EXISTS idx_settings_key 
         ON user_settings(key)
     ''')
     
-    print("  ✓ Добавлены настройки пользователя")
+    print("  ✓ User settings added")
 ```
 
-## Существующие миграции
+## Existing migrations
 
 ### 001: Initial Schema
 - Создание базовых таблиц: `personal_channels`, `subscriptions`, `videos`
@@ -123,56 +123,56 @@ def upgrade(cursor):
 - Таблица `sync_errors` для логирования ошибок
 - Индексы для быстрого поиска
 
-## Лучшие практики
+## Best practices
 
-### ✅ Делайте:
+### ✅ Do:
 
-1. **Используйте `IF NOT EXISTS`** для таблиц и индексов
-2. **Проверяйте наличие колонок** перед добавлением (PRAGMA table_info)
-3. **Добавляйте DEFAULT значения** для новых полей
-4. **Документируйте изменения** в docstring миграции
-5. **Тестируйте на копии БД** перед релизом
+1. **Use `IF NOT EXISTS`** for tables and indexes
+2. **Check column existence** before adding (PRAGMA table_info)
+3. **Add DEFAULT values** for new fields
+4. **Document changes** in migration docstring
+5. **Test on database copy** before release
 
-### ❌ Не делайте:
+### ❌ Don't do:
 
-1. **Не удаляйте колонки** (SQLite не поддерживает DROP COLUMN легко)
-2. **Не изменяйте типы данных** существующих колонок
-3. **Не удаляйте данные пользователя**
-4. **Не меняйте уже применённые миграции** - создавайте новую
-5. **Не полагайтесь на конкретный порядок записей** в БД
+1. **Don't delete columns** (SQLite doesn't support DROP COLUMN easily)
+2. **Don't change data types** of existing columns
+3. **Don't delete user data**
+4. **Don't change already applied migrations** - create new ones
+5. **Don't rely on specific record order** in database
 
-## Откат миграций
+## Migration rollback
 
-Откат (downgrade) **не реализован** по умолчанию, так как:
-- SQLite ограниченно поддерживает ALTER TABLE
-- DROP COLUMN не поддерживается
-- Риск потери данных
+Rollback (downgrade) **is not implemented** by default because:
+- SQLite has limited ALTER TABLE support
+- DROP COLUMN is not supported
+- Risk of data loss
 
-Если нужен откат:
-1. Сделайте резервную копию БД
-2. Восстановите из копии
-3. Примените нужные миграции
+If rollback is needed:
+1. Make database backup
+2. Restore from backup
+3. Apply required migrations
 
-## Резервное копирование
+## Backup
 
-**Всегда делайте бэкап перед миграцией!**
+**Always make backup before migration!**
 
 ```bash
-# Автоматический бэкап (рекомендуется добавить в migrate.py)
+# Automatic backup (recommended to add to migrate.py)
 cp database/videos.db database/videos.db.backup
 ```
 
-## Структура таблицы schema_version
+## schema_version table structure
 
 ```sql
 CREATE TABLE schema_version (
-    version INTEGER PRIMARY KEY,    -- Номер версии миграции
-    name TEXT NOT NULL,             -- Название миграции
-    applied_at TIMESTAMP            -- Когда применена
+    version INTEGER PRIMARY KEY,    -- Migration version number
+    name TEXT NOT NULL,             -- Migration name
+    applied_at TIMESTAMP            -- When applied
 );
 ```
 
-Пример данных:
+Example data:
 
 | version | name | applied_at |
 |---------|------|------------|
@@ -182,62 +182,62 @@ CREATE TABLE schema_version (
 
 ## Troubleshooting
 
-### Ошибка: "Migration X failed"
+### Error: "Migration X failed"
 
-1. Проверьте лог ошибки
-2. Исправьте проблему (возможно, синтаксис SQL)
-3. Запустите `python migrate.py up` снова
-4. Уже применённые миграции будут пропущены
+1. Check error log
+2. Fix the problem (possibly SQL syntax)
+3. Run `python migrate.py up` again
+4. Already applied migrations will be skipped
 
-### Ошибка: "Table already exists"
+### Error: "Table already exists"
 
-- Это нормально, если используется `CREATE TABLE IF NOT EXISTS`
-- Проверьте, что миграция идемпотентна
+- This is normal if `CREATE TABLE IF NOT EXISTS` is used
+- Check that migration is idempotent
 
-### "Несоответствие версий после обновления"
+### "Version mismatch after update"
 
 ```bash
-# Проверьте статус
+# Check status
 python migrate.py status
 
-# Примените недостающие миграции
+# Apply missing migrations
 python migrate.py up
 ```
 
-### Полная переустановка схемы (⚠️ УДАЛИТ ВСЕ ДАННЫЕ)
+### Full schema reinstallation (⚠️ WILL DELETE ALL DATA)
 
 ```bash
-# Бэкап
+# Backup
 cp database/videos.db database/videos.db.backup
 
-# Удалить БД
+# Delete DB
 rm database/videos.db
 
-# Создать заново
+# Create anew
 python migrate.py up
 ```
 
-## Интеграция в CI/CD
+## Integration into CI/CD
 
-### Автоматическая проверка при деплое
+### Automatic check during deployment
 
 ```bash
-# В скрипте деплоя
+# In deployment script
 python migrate.py status
-python migrate.py up --yes  # (если добавить флаг --yes)
+python migrate.py up --yes  # (if --yes flag is added)
 ```
 
-## Примеры реальных сценариев
+## Real-world scenario examples
 
-### Сценарий 1: Добавление новой функции
+### Scenario 1: Adding new feature
 
-**Задача:** Добавить избранные видео
+**Task:** Add favorite videos
 
 ```bash
-# Создаём миграцию
+# Create migration
 python migrate.py create add_favorites
 
-# Редактируем migrations/004_add_favorites.py:
+# Edit migrations/004_add_favorites.py:
 ```
 
 ```python
@@ -252,17 +252,17 @@ def upgrade(cursor):
         ON videos(is_favorite, published_at DESC)
     ''')
     
-    print("  ✓ Добавлена функция избранного")
+    print("  ✓ Favorite feature added")
 ```
 
 ```bash
-# Применяем
+# Apply
 python migrate.py up
 ```
 
-### Сценарий 2: Рефакторинг структуры
+### Scenario 2: Structure refactoring
 
-**Задача:** Разделить канал и email в разные таблицы
+**Task:** Separate channel and email into different tables
 
 ```bash
 python migrate.py create separate_user_accounts
@@ -270,7 +270,7 @@ python migrate.py create separate_user_accounts
 
 ```python
 def upgrade(cursor):
-    # Создаём новую таблицу
+    # Create new table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS user_accounts (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -279,22 +279,22 @@ def upgrade(cursor):
         )
     ''')
     
-    # Добавляем связь к существующей таблице
+    # Add relation to existing table
     cursor.execute('''
         ALTER TABLE personal_channels 
         ADD COLUMN user_account_id INTEGER 
         REFERENCES user_accounts(id)
     ''')
     
-    # Миграция данных (если нужно)
+    # Data migration (if needed)
     # ... логика переноса ...
     
-    print("  ✓ Разделены аккаунты пользователей")
+    print("  ✓ User accounts separated")
 ```
 
-### Сценарий 3: Оптимизация производительности
+### Scenario 3: Performance optimization
 
-**Задача:** Добавить индекс для быстрого поиска
+**Task:** Add index for fast search
 
 ```bash
 python migrate.py create optimize_video_search
@@ -312,30 +312,30 @@ def upgrade(cursor):
         ON videos(subscription_id, published_at DESC, is_watched)
     ''')
     
-    print("  ✓ Добавлены индексы для оптимизации")
+    print("  ✓ Indexes added for optimization")
 ```
 
 ## FAQ
 
-**Q: Можно ли пропустить миграцию?**
-A: Нет, миграции применяются последовательно. Это гарантирует целостность.
+**Q: Can a migration be skipped?**
+A: No, migrations are applied sequentially. This ensures integrity.
 
-**Q: Что если у меня старая версия БД без schema_version?**
-A: Система автоматически создаст таблицу и определит версию как 0.
+**Q: What if I have an old DB version without schema_version?**
+A: The system will automatically create the table and determine version as 0.
 
-**Q: Как откатиться к предыдущей версии?**
-A: Восстановите из бэкапа. Полноценный rollback не поддерживается.
+**Q: How to rollback to previous version?**
+A: Restore from backup. Full rollback is not supported.
 
-**Q: Сколько миграций можно создать?**
-A: Практически неограниченно. Версии от 001 до 999.
+**Q: How many migrations can be created?**
+A: Practically unlimited. Versions from 001 to 999.
 
-**Q: Нужно ли коммитить миграции в Git?**
-A: Да! Миграции - часть кода приложения.
+**Q: Should migrations be committed to Git?**
+A: Yes! Migrations are part of application code.
 
-**Q: Как тестировать миграции?**
-A: Создайте копию БД и тестируйте на ней перед продакшеном.
+**Q: How to test migrations?**
+A: Create DB copy and test on it before production.
 
-## Структура файлов
+## File structure
 
 ```
 youtube-dashboard/
@@ -346,18 +346,18 @@ youtube-dashboard/
 │   ├── 002_add_subscription_status.py
 │   ├── 003_add_sync_errors.py
 │   └── 004_your_new_migration.py
-├── migrate.py                     # CLI утилита
+├── migrate.py                     # CLI utility
 └── database/
-    └── videos.db                  # БД с таблицей schema_version
+    └── videos.db                  # DB with schema_version table
 ```
 
-## Заключение
+## Conclusion
 
-Система миграций обеспечивает:
-- ✅ Безопасное обновление приложения
-- ✅ Сохранность данных пользователей
-- ✅ Прозрачность изменений
-- ✅ Возможность пропуска версий (например, 1.0 → 3.0)
-- ✅ Откат через бэкапы
+Migration system provides:
+- ✅ Safe application updates
+- ✅ User data preservation
+- ✅ Change transparency
+- ✅ Version skipping capability (e.g., 1.0 → 3.0)
+- ✅ Rollback via backups
 
-**Помните:** Всегда делайте бэкап перед миграцией в продакшене!
+**Remember:** Always make backup before migration in production!

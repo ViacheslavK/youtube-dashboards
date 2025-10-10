@@ -1,14 +1,14 @@
 """
-YouTube Dashboard - Main Package
+SubDeck for YouTube - Main Package
 
-Основной функционал приложения
+Main application functionality
 """
 
 from .db_manager import Database
 from .youtube_api import YouTubeAPI
 from locales.i18n import load_locale_from_config
 
-# Загружаем локаль при импорте пакета
+# Load locale when importing package
 load_locale_from_config()
 
 __all__ = ['Database', 'YouTubeAPI']

@@ -1,4 +1,4 @@
-# YouTube Dashboard
+# SubDeck for YouTube
 
 ![Tests](https://github.com/ViacheslavK/youtube-dashboards/actions/workflows/test.yml/badge.svg)
 ![Release](https://github.com/ViacheslavK/youtube-dashboards/actions/workflows/release.yml/badge.svg)
@@ -64,12 +64,12 @@ pip install -r requirements.txt
 2. Click "+ CREATE CREDENTIALS" → "OAuth client ID"
 3. If required, configure OAuth consent screen:
     - User Type: External
-    - App name: YouTube Dashboard (or any other)
+    - App name: SubDeck for YouTube (or any other)
     - User support email: your email
     - Developer contact: your email
     - Scopes: no need to add (will be specified in code)
 4. Application type: **Desktop app**
-5. Name: YouTube Dashboard Client
+5. Name: SubDeck for YouTube Client
 6. Click "CREATE"
 7. **Download the JSON file** and save it as `config/client_secrets.json`
 

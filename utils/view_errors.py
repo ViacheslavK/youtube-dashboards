@@ -1,26 +1,26 @@
 #!/usr/bin/env python3
 """
-Просмотр ошибок синхронизации
+Viewing synchronization errors
 """
 
 import sys
 import os
 from datetime import datetime
 
-# Добавляем корневую папку проекта в путь
+# Add project root folder to path
 current_dir = os.path.dirname(os.path.abspath(__file__))  # utils/
-project_root = os.path.dirname(current_dir)  # корень проекта
+project_root = os.path.dirname(current_dir)  # project root
 sys.path.insert(0, project_root)
 
 from src.db_manager import Database
 from locales import t, load_locale_from_config
 
-# Загружаем локаль из настроек
+# Load locale from settings
 load_locale_from_config()
 
 
 def view_errors():
-    """Показать все нерешённые ошибки"""
+    """Show all unresolved errors"""
     db = Database()
 
     errors = db.get_unresolved_errors()
@@ -33,26 +33,26 @@ def view_errors():
     print(t('errors.found_errors', count=len(errors)))
     print('=' * 80)
     
-    # Группируем по типу
+    # Group by type
     error_types = {}
     for err in errors:
         if err['error_type'] not in error_types:
             error_types[err['error_type']] = []
         error_types[err['error_type']].append(err)
     
-    # Выводим по группам
+    # Output by groups
     for error_type, errs in error_types.items():
         print(f"\n{'─' * 80}")
         print(t('errors.errors_by_type', type=error_type, count=len(errs)))
         print('─' * 80)
 
-        for err in errs[:10]:  # Показываем первые 10
+        for err in errs[:10]:  # Show first 10
             occurred = datetime.fromisoformat(err['occurred_at'])
             print(f"\n{t('errors.id', id=err['id'])}")
             print(t('errors.channel', name=err['channel_name']))
             print(t('errors.occurred_at', date=occurred.strftime('%Y-%m-%d %H:%M:%S')))
 
-            # Показываем короткое сообщение
+            # Show short message
             msg = err['error_message']
             if len(msg) > 100:
                 msg = msg[:100] + "..."
@@ -65,7 +65,7 @@ def view_errors():
 
 
 def view_errors_by_channel():
-    """Показать ошибки по каналам"""
+    """Show errors by channels"""
     db = Database()
 
     channels = db.get_all_personal_channels()
@@ -82,7 +82,7 @@ def view_errors_by_channel():
         if errors:
             print(f"\n📺 {t('errors.channel_errors', channel=channel['name'], count=len(errors))}")
 
-            # Группируем по типу
+            # Group by type
             error_types = {}
             for err in errors:
                 error_types[err['error_type']] = error_types.get(err['error_type'], 0) + 1
@@ -101,7 +101,7 @@ def view_errors_by_channel():
 
 
 def explain_errors():
-    """Объяснение типов ошибок"""
+    """Explanation of error types"""
     print(f"\n{'=' * 80}")
     print(t('errors.explanations_title'))
     print('=' * 80)
@@ -143,10 +143,10 @@ if __name__ == '__main__':
     try:
         main()
     except KeyboardInterrupt:
-        print("\n\n⚠️  Прервано пользователем")
+        print("\n\n⚠️  Interrupted by user")
         sys.exit(0)
     except Exception as e:
-        print(f"\n❌ Ошибка: {e}")
+        print(f"\n❌ Error: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)

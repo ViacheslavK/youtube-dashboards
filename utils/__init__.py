@@ -1,5 +1,5 @@
 """
-YouTube Dashboard - Utilities
+SubDeck for YouTube - Utilities
 
 Administrative utilities and tools
 """

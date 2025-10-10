@@ -1,5 +1,5 @@
 """
-Тесты для YouTube API (с моками)
+Tests for YouTube API (with mocks)
 """
 
 import pytest
@@ -9,7 +9,7 @@ from src.youtube_api import YouTubeAPI
 
 @pytest.fixture
 def mock_credentials():
-    """Мок для credentials"""
+    """Mock for credentials"""
     creds = Mock()
     creds.valid = True
     creds.expired = False
@@ -18,22 +18,22 @@ def mock_credentials():
 
 @pytest.fixture
 def youtube_api():
-    """Создаёт YouTube API instance без реальной авторизации"""
+    """Creates YouTube API instance without real authentication"""
     api = YouTubeAPI('fake_credentials.json')
-    api.service = Mock()  # Мокируем service
+    api.service = Mock()  # Mock the service
     return api
 
 
 @pytest.mark.api
 class TestYouTubeAPIBasics:
-    """Базовые тесты YouTube API"""
+    """Basic YouTube API tests"""
     
     @patch('src.youtube_api.build')
     @patch('src.youtube_api.pickle')
     @patch('os.path.exists')
     def test_authenticate_with_existing_token(self, mock_exists, mock_pickle, mock_build):
-        """Тест авторизации с существующим токеном"""
-        # Настраиваем моки
+        """Test authentication with existing token"""
+        # Set up mocks
         mock_exists.return_value = True
         mock_creds = Mock()
         mock_creds.valid = True
@@ -48,7 +48,7 @@ class TestYouTubeAPIBasics:
         mock_build.assert_called_once()
     
     def test_get_channel_id(self, youtube_api):
-        """Тест получения ID канала"""
+        """Test getting channel ID"""
         youtube_api.channel_info = {'id': 'UC_test_123'}
         
         channel_id = youtube_api.get_channel_id()
@@ -56,7 +56,7 @@ class TestYouTubeAPIBasics:
         assert channel_id == 'UC_test_123'
     
     def test_get_channel_title(self, youtube_api):
-        """Тест получения названия канала"""
+        """Test getting channel title"""
         youtube_api.channel_info = {
             'snippet': {'title': 'Test Channel'}
         }
@@ -68,11 +68,11 @@ class TestYouTubeAPIBasics:
 
 @pytest.mark.api
 class TestGetSubscriptions:
-    """Тесты получения подписок"""
+    """Subscription retrieval tests"""
     
     def test_get_subscriptions(self, youtube_api):
-        """Тест получения списка подписок"""
-        # Мокируем ответ API
+        """Test getting subscription list"""
+        # Mock API response
         mock_response = {
             'items': [
                 {
@@ -94,7 +94,7 @@ class TestGetSubscriptions:
             ]
         }
         
-        # Настраиваем мок
+        # Set up mock
         mock_request = Mock()
         mock_request.execute.return_value = mock_response
         youtube_api.service.subscriptions().list.return_value = mock_request
@@ -107,8 +107,8 @@ class TestGetSubscriptions:
         assert subscriptions[1]['channel_id'] == 'UC_sub2'
     
     def test_get_subscriptions_pagination(self, youtube_api):
-        """Тест пагинации при получении подписок"""
-        # Первая страница
+        """Test pagination when getting subscriptions"""
+        # First page
         mock_response_page1 = {
             'items': [
                 {
@@ -123,7 +123,7 @@ class TestGetSubscriptions:
             'nextPageToken': 'token_page2'
         }
         
-        # Вторая страница
+        # Second page
         mock_response_page2 = {
             'items': [
                 {
@@ -137,7 +137,7 @@ class TestGetSubscriptions:
             ]
         }
         
-        # Настраиваем моки для пагинации
+        # Set up mocks for pagination
         mock_request1 = Mock()
         mock_request1.execute.return_value = mock_response_page1
         
@@ -153,11 +153,11 @@ class TestGetSubscriptions:
 
 @pytest.mark.api
 class TestGetChannelVideos:
-    """Тесты получения видео с канала"""
+    """Tests for getting videos from channel"""
     
     def test_get_channel_videos(self, youtube_api):
-        """Тест получения видео с канала"""
-        # Мок для получения uploads playlist ID
+        """Test getting videos from channel"""
+        # Mock for getting uploads playlist ID
         mock_channel_response = {
             'items': [{
                 'contentDetails': {
@@ -166,14 +166,14 @@ class TestGetChannelVideos:
             }]
         }
         
-        # Мок для получения видео из playlist
+        # Mock for getting videos from playlist
         mock_playlist_response = {
             'items': [{
                 'contentDetails': {'videoId': 'video_123'}
             }]
         }
         
-        # Мок для получения деталей видео
+        # Mock for getting video details
         mock_videos_response = {
             'items': [{
                 'id': 'video_123',
@@ -192,7 +192,7 @@ class TestGetChannelVideos:
             }]
         }
         
-        # Настраиваем моки
+        # Set up mocks
         mock_channel_request = Mock()
         mock_channel_request.execute.return_value = mock_channel_response
         
@@ -215,7 +215,7 @@ class TestGetChannelVideos:
         assert videos[0]['view_count'] == 1000
     
     def test_get_channel_videos_with_livestream(self, youtube_api):
-        """Тест обработки livestream (без duration)"""
+        """Test processing livestream (without duration)"""
         mock_channel_response = {
             'items': [{
                 'contentDetails': {
@@ -230,7 +230,7 @@ class TestGetChannelVideos:
             }]
         }
         
-        # Livestream без duration
+        # Livestream without duration
         mock_videos_response = {
             'items': [{
                 'id': 'livestream_123',
@@ -239,7 +239,7 @@ class TestGetChannelVideos:
                     'thumbnails': {'medium': {'url': 'thumb.jpg'}},
                     'publishedAt': '2025-01-15T10:00:00Z'
                 },
-                'contentDetails': {},  # Нет duration
+                'contentDetails': {},  # No duration
                 'statistics': {}
             }]
         }
@@ -265,25 +265,25 @@ class TestGetChannelVideos:
 
 @pytest.mark.api
 class TestHelperMethods:
-    """Тесты вспомогательных методов"""
+    """Tests for helper methods"""
     
     def test_format_duration_hours(self):
-        """Тест форматирования длительности с часами"""
+        """Test formatting duration with hours"""
         duration = YouTubeAPI._format_duration(3661)  # 1:01:01
         assert duration == '1:01:01'
     
     def test_format_duration_minutes(self):
-        """Тест форматирования длительности без часов"""
+        """Test formatting duration without hours"""
         duration = YouTubeAPI._format_duration(630)  # 10:30
         assert duration == '10:30'
     
     def test_format_duration_seconds(self):
-        """Тест форматирования коротких видео"""
+        """Test formatting short videos"""
         duration = YouTubeAPI._format_duration(45)  # 0:45
         assert duration == '0:45'
     
     def test_parse_published_date(self):
-        """Тест парсинга даты публикации"""
+        """Test parsing publication date"""
         date_str = '2025-01-15T10:30:00Z'
         parsed = YouTubeAPI.parse_published_date(date_str)
         

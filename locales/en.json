@@ -23,7 +23,7 @@
   
   "setup": {
     "title": "Personal Channels Setup",
-    "welcome": "Welcome to YouTube Dashboard!",
+    "welcome": "Welcome to SubDeck for YouTube!",
     "channels_count": "How many personal channels do you want to add?",
     "channel_name": "Channel name (e.g., 'Technology', 'Music')",
     "auth_opening": "Browser will open for authorization...",
@@ -256,7 +256,7 @@
     "database_ok": "Database working!",
     "database_error": "Error: {error}",
     "database_problem": "Database problem!",
-    "title": "YouTube Dashboard - Setup Check",
+    "title": "SubDeck for YouTube - Setup Check",
     "check_complete": "Everything is ready to work!",
     "next_channels": "Next steps:",
     "run_setup_channels": "1. python setup_channels.py  - Setup personal channels",

@@ -9,7 +9,7 @@ import tempfile
 import sqlite3
 from pathlib import Path
 
-# Добавляем корневую папку в путь
+# Add project root folder to path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
@@ -18,28 +18,28 @@ from src.db_manager import Database
 
 @pytest.fixture
 def temp_db_path():
-    """Создаёт временную БД для тестов"""
+    """Creates temporary DB for tests"""
     with tempfile.NamedTemporaryFile(suffix='.db', delete=False) as tmp:
         db_path = tmp.name
     
     yield db_path
     
-    # Удаляем после теста
+    # Remove after test
     if os.path.exists(db_path):
         os.unlink(db_path)
 
 
 @pytest.fixture
 def db(temp_db_path):
-    """Создаёт тестовую БД с инициализированной схемой"""
+    """Creates test DB with initialized schema"""
     database = Database(temp_db_path)
     yield database
-    # Cleanup происходит через temp_db_path fixture
+    # Cleanup happens through temp_db_path fixture
 
 
 @pytest.fixture
 def sample_channel_data():
-    """Тестовые данные для личного канала"""
+    """Test data for personal channel"""
     return {
         'name': 'Test Channel',
         'youtube_channel_id': 'UC_test_channel_123',
@@ -51,7 +51,7 @@ def sample_channel_data():
 
 @pytest.fixture
 def sample_subscription_data():
-    """Тестовые данные для подписки"""
+    """Test data for subscription"""
     return {
         'youtube_channel_id': 'UC_subscription_456',
         'channel_name': 'Test Subscription Channel',
@@ -61,7 +61,7 @@ def sample_subscription_data():
 
 @pytest.fixture
 def sample_video_data():
-    """Тестовые данные для видео"""
+    """Test data for video"""
     return {
         'youtube_video_id': 'test_video_789',
         'title': 'Test Video Title',
@@ -75,8 +75,8 @@ def sample_video_data():
 
 @pytest.fixture
 def populated_db(db, sample_channel_data, sample_subscription_data, sample_video_data):
-    """БД с тестовыми данными"""
-    # Добавляем канал
+    """DB with test data"""
+    # Add channel
     channel_id = db.add_personal_channel(
         name=sample_channel_data['name'],
         youtube_channel_id=sample_channel_data['youtube_channel_id'],
@@ -85,7 +85,7 @@ def populated_db(db, sample_channel_data, sample_subscription_data, sample_video
         order_position=sample_channel_data['order_position']
     )
     
-    # Добавляем подписку
+    # Add subscription
     subscription_id = db.add_subscription(
         personal_channel_id=channel_id,
         youtube_channel_id=sample_subscription_data['youtube_channel_id'],
@@ -93,7 +93,7 @@ def populated_db(db, sample_channel_data, sample_subscription_data, sample_video
         channel_thumbnail=sample_subscription_data['channel_thumbnail']
     )
     
-    # Добавляем видео
+    # Add video
     video_id = db.add_video(
         subscription_id=subscription_id,
         youtube_video_id=sample_video_data['youtube_video_id'],

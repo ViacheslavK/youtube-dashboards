@@ -1,5 +1,5 @@
 """
-Тесты для системы миграций
+Tests for migration system
 """
 
 import pytest
@@ -13,11 +13,11 @@ from migrations.migration_manager import MigrationManager
 
 @pytest.fixture
 def temp_migrations_dir(tmp_path):
-    """Создаёт временную папку с миграциями для тестов"""
+    """Creates temporary folder with migrations for tests"""
     migrations_dir = tmp_path / "migrations"
     migrations_dir.mkdir()
     
-    # Создаём тестовую миграцию
+    # Create test migration
     migration_file = migrations_dir / "001_test_migration.py"
     migration_file.write_text("""
 def upgrade(cursor):
@@ -35,25 +35,25 @@ def upgrade(cursor):
 
 @pytest.fixture
 def migration_manager(temp_db_path, temp_migrations_dir, monkeypatch):
-    """Создаёт MigrationManager с временными путями"""
+    """Creates MigrationManager with temporary paths"""
     manager = MigrationManager(temp_db_path)
-    # Переопределяем папку миграций
+    # Override migrations folder
     monkeypatch.setattr(manager, 'migrations_dir', temp_migrations_dir)
     return manager
 
 
 @pytest.mark.unit
 class TestMigrationManager:
-    """Тесты для MigrationManager"""
+    """Tests for MigrationManager"""
     
     def test_schema_version_table_created(self, temp_db_path):
-        """Тест создания таблицы schema_version"""
+        """Test creating schema_version table"""
         manager = MigrationManager(temp_db_path)
         
         conn = sqlite3.connect(temp_db_path)
         cursor = conn.cursor()
         
-        # Проверяем, что таблица создана
+        # Check that table is created
         cursor.execute("""
             SELECT name FROM sqlite_master 
             WHERE type='table' AND name='schema_version'
@@ -66,27 +66,27 @@ class TestMigrationManager:
         conn.close()
     
     def test_get_current_version_initial(self, migration_manager):
-        """Тест: начальная версия = 0"""
+        """Test: initial version = 0"""
         version = migration_manager.get_current_version()
         assert version == 0
     
     def test_get_available_migrations(self, migration_manager):
-        """Тест получения доступных миграций"""
+        """Test getting available migrations"""
         migrations = migration_manager.get_available_migrations()
         
         assert len(migrations) >= 1
-        assert migrations[0][0] == 1  # Версия
-        assert '001_test_migration.py' in migrations[0][1]  # Имя файла
+        assert migrations[0][0] == 1  # Version
+        assert '001_test_migration.py' in migrations[0][1]  # Filename
     
     def test_get_pending_migrations(self, migration_manager):
-        """Тест получения неприменённых миграций"""
+        """Test getting unapplied migrations"""
         pending = migration_manager.get_pending_migrations()
         
-        # Все миграции должны быть pending (версия = 0)
+        # All migrations should be pending (version = 0)
         assert len(pending) >= 1
     
     def test_apply_migration(self, migration_manager, temp_db_path):
-        """Тест применения миграции"""
+        """Test applying migration"""
         migrations = migration_manager.get_available_migrations()
         version, filename = migrations[0]
         
@@ -94,7 +94,7 @@ class TestMigrationManager:
         
         assert success is True
         
-        # Проверяем, что таблица создана
+        # Check that table is created
         conn = sqlite3.connect(temp_db_path)
         cursor = conn.cursor()
         cursor.execute("""
@@ -104,7 +104,7 @@ class TestMigrationManager:
         result = cursor.fetchone()
         assert result is not None
         
-        # Проверяем, что версия обновилась
+        # Check that version is updated
         cursor.execute('SELECT version FROM schema_version WHERE version = ?', (version,))
         version_result = cursor.fetchone()
         assert version_result is not None
@@ -112,30 +112,30 @@ class TestMigrationManager:
         conn.close()
     
     def test_migrate_all(self, migration_manager):
-        """Тест применения всех миграций"""
+        """Test applying all migrations"""
         success_count, total = migration_manager.migrate()
         
         assert success_count == total
         assert total >= 1
         
-        # Проверяем текущую версию
+        # Check current version
         current_version = migration_manager.get_current_version()
         assert current_version >= 1
     
     def test_migration_idempotency(self, migration_manager):
-        """Тест идемпотентности миграций"""
-        # Применяем миграции
+        """Test migration idempotency"""
+        # Apply migrations
         migration_manager.migrate()
         
-        # Пробуем применить снова
+        # Try to apply again
         pending = migration_manager.get_pending_migrations()
         
-        # Не должно быть pending миграций
+        # Should not have pending migrations
         assert len(pending) == 0
     
     def test_get_migration_history(self, migration_manager):
-        """Тест получения истории миграций"""
-        # Применяем миграции
+        """Test getting migration history"""
+        # Apply migrations
         migration_manager.migrate()
         
         history = migration_manager.get_migration_history()
@@ -148,18 +148,18 @@ class TestMigrationManager:
 
 @pytest.mark.integration
 class TestRealMigrations:
-    """Интеграционные тесты с реальными миграциями проекта"""
+    """Integration tests with real project migrations"""
     
     def test_apply_all_project_migrations(self, temp_db_path):
-        """Тест применения всех миграций проекта"""
+        """Test applying all project migrations"""
         manager = MigrationManager(temp_db_path)
         
         success_count, total = manager.migrate()
         
         assert success_count == total
-        assert total >= 3  # У нас минимум 3 миграции
+        assert total >= 3  # We have at least 3 migrations
         
-        # Проверяем, что все таблицы созданы
+        # Check that all tables are created
         conn = sqlite3.connect(temp_db_path)
         cursor = conn.cursor()
         
@@ -178,16 +178,16 @@ class TestRealMigrations:
         conn.close()
     
     def test_migration_001_initial_schema(self, temp_db_path):
-        """Тест миграции 001: initial_schema"""
+        """Test migration 001: initial_schema"""
         manager = MigrationManager(temp_db_path)
         
-        # Применяем только первую миграцию
+        # Apply only first migration
         manager.migrate(target_version=1)
         
         conn = sqlite3.connect(temp_db_path)
         cursor = conn.cursor()
         
-        # Проверяем базовые таблицы
+        # Check basic tables
         cursor.execute("""
             SELECT name FROM sqlite_master 
             WHERE type='table' AND name IN ('personal_channels', 'subscriptions', 'videos')
@@ -199,16 +199,16 @@ class TestRealMigrations:
         conn.close()
     
     def test_migration_002_subscription_status(self, temp_db_path):
-        """Тест миграции 002: add_subscription_status"""
+        """Test migration 002: add_subscription_status"""
         manager = MigrationManager(temp_db_path)
         
-        # Применяем до версии 2
+        # Apply up to version 2
         manager.migrate(target_version=2)
         
         conn = sqlite3.connect(temp_db_path)
         cursor = conn.cursor()
         
-        # Проверяем новые поля
+        # Check new fields
         cursor.execute('PRAGMA table_info(subscriptions)')
         columns = [row[1] for row in cursor.fetchall()]
         
@@ -219,16 +219,16 @@ class TestRealMigrations:
         conn.close()
     
     def test_migration_003_sync_errors(self, temp_db_path):
-        """Тест миграции 003: add_sync_errors"""
+        """Test migration 003: add_sync_errors"""
         manager = MigrationManager(temp_db_path)
         
-        # Применяем все до версии 3
+        # Apply all up to version 3
         manager.migrate(target_version=3)
         
         conn = sqlite3.connect(temp_db_path)
         cursor = conn.cursor()
         
-        # Проверяем таблицу sync_errors
+        # Check sync_errors table
         cursor.execute("""
             SELECT name FROM sqlite_master 
             WHERE type='table' AND name='sync_errors'
@@ -240,10 +240,10 @@ class TestRealMigrations:
         conn.close()
     
     def test_incremental_migrations(self, temp_db_path):
-        """Тест последовательного применения миграций"""
+        """Test sequential application of migrations"""
         manager = MigrationManager(temp_db_path)
         
-        # Применяем по одной
+        # Apply one by one
         for version in range(1, 4):
             current = manager.get_current_version()
             manager.migrate(target_version=version)
@@ -255,27 +255,27 @@ class TestRealMigrations:
 
 @pytest.mark.unit
 class TestMigrationCreation:
-    """Тесты создания новых миграций"""
+    """Tests for creating new migrations"""
     
     def test_create_migration_template(self, tmp_path, monkeypatch):
-        """Тест создания шаблона миграции"""
+        """Test creating migration template"""
         from migrations.migration_manager import create_migration_template
         
         migrations_dir = tmp_path / "migrations"
         migrations_dir.mkdir()
         
-        # Переопределяем путь
+        # Override path
         import migrations.migration_manager as mm
         original_file = mm.__file__
         monkeypatch.setattr(mm, '__file__', str(migrations_dir / 'migration_manager.py'))
         
         create_migration_template('test_feature', version=10)
         
-        # Проверяем, что файл создан
+        # Check that file is created
         migration_file = migrations_dir / '010_test_feature.py'
         assert migration_file.exists()
         
-        # Проверяем содержимое (читаем с UTF-8)
+        # Check content (read with UTF-8)
         content = migration_file.read_text(encoding='utf-8')
         assert 'def upgrade(cursor):' in content
         assert 'def downgrade(cursor):' in content

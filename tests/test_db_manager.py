@@ -1,5 +1,5 @@
 """
-Тесты для Database Manager
+Tests for Database Manager
 """
 
 import pytest
@@ -8,10 +8,10 @@ from datetime import datetime
 
 @pytest.mark.unit
 class TestPersonalChannels:
-    """Тесты для работы с личными каналами"""
+    """Tests for working with personal channels"""
     
     def test_add_personal_channel(self, db, sample_channel_data):
-        """Тест добавления личного канала"""
+        """Test adding personal channel"""
         channel_id = db.add_personal_channel(
             name=sample_channel_data['name'],
             youtube_channel_id=sample_channel_data['youtube_channel_id'],
@@ -23,8 +23,8 @@ class TestPersonalChannels:
         assert channel_id > 0
     
     def test_get_all_personal_channels(self, db, sample_channel_data):
-        """Тест получения всех каналов"""
-        # Добавляем несколько каналов
+        """Test getting all channels"""
+        # Add several channels
         db.add_personal_channel(
             name='Channel 1',
             youtube_channel_id='UC_1',
@@ -45,7 +45,7 @@ class TestPersonalChannels:
         assert channels[1]['name'] == 'Channel 2'
     
     def test_update_authuser_index(self, db, sample_channel_data):
-        """Тест обновления authuser индекса"""
+        """Test updating authuser index"""
         channel_id = db.add_personal_channel(
             name=sample_channel_data['name'],
             youtube_channel_id=sample_channel_data['youtube_channel_id'],
@@ -60,10 +60,10 @@ class TestPersonalChannels:
 
 @pytest.mark.unit
 class TestSubscriptions:
-    """Тесты для работы с подписками"""
+    """Tests for working with subscriptions"""
     
     def test_add_subscription(self, db, sample_channel_data, sample_subscription_data):
-        """Тест добавления подписки"""
+        """Test adding subscription"""
         channel_id = db.add_personal_channel(
             name=sample_channel_data['name'],
             youtube_channel_id=sample_channel_data['youtube_channel_id'],
@@ -81,7 +81,7 @@ class TestSubscriptions:
         assert subscription_id > 0
     
     def test_get_subscriptions_by_channel(self, populated_db):
-        """Тест получения подписок для канала"""
+        """Test getting subscriptions for channel"""
         db = populated_db['db']
         channel_id = populated_db['channel_id']
         
@@ -92,13 +92,13 @@ class TestSubscriptions:
         assert subscriptions[0]['is_active'] == 1
     
     def test_deactivate_subscription(self, populated_db):
-        """Тест деактивации подписки"""
+        """Test subscription deactivation"""
         db = populated_db['db']
         subscription_id = populated_db['subscription_id']
         
         db.deactivate_subscription(subscription_id)
         
-        # Проверяем, что подписка деактивирована
+        # Check that subscription is deactivated
         conn = db.get_connection()
         cursor = conn.cursor()
         cursor.execute('SELECT is_active FROM subscriptions WHERE id = ?', (subscription_id,))
@@ -108,11 +108,11 @@ class TestSubscriptions:
         assert result['is_active'] == 0
     
     def test_sync_subscriptions_status(self, populated_db):
-        """Тест синхронизации статусов подписок"""
+        """Test synchronization of subscription statuses"""
         db = populated_db['db']
         channel_id = populated_db['channel_id']
         
-        # Добавляем ещё одну подписку
+        # Add another subscription
         sub2_id = db.add_subscription(
             personal_channel_id=channel_id,
             youtube_channel_id='UC_sub2',
@@ -120,22 +120,22 @@ class TestSubscriptions:
             channel_thumbnail='thumb2.jpg'
         )
         
-        # Синхронизируем: оставляем только первую подписку активной
+        # Synchronize: leave only first subscription active
         stats = db.sync_subscriptions_status(
             channel_id, 
-            ['UC_subscription_456']  # Только первая подписка
+            ['UC_subscription_456']  # Only first subscription
         )
         
-        assert stats['deactivated'] == 1  # Вторая подписка деактивирована
-        assert stats['unchanged'] == 1    # Первая осталась активной
+        assert stats['deactivated'] == 1  # Second subscription deactivated
+        assert stats['unchanged'] == 1    # First remained active
 
 
 @pytest.mark.unit
 class TestVideos:
-    """Тесты для работы с видео"""
+    """Tests for working with videos"""
     
     def test_add_video(self, populated_db, sample_video_data):
-        """Тест добавления видео"""
+        """Test adding video"""
         db = populated_db['db']
         subscription_id = populated_db['subscription_id']
         
@@ -152,7 +152,7 @@ class TestVideos:
         assert video_id > 0
     
     def test_get_videos_by_personal_channel(self, populated_db):
-        """Тест получения видео для канала"""
+        """Test getting videos for channel"""
         db = populated_db['db']
         channel_id = populated_db['channel_id']
         
@@ -163,13 +163,13 @@ class TestVideos:
         assert videos[0]['is_watched'] == 0
     
     def test_mark_video_watched(self, populated_db):
-        """Тест отметки видео как просмотренного"""
+        """Test marking video as watched"""
         db = populated_db['db']
         video_id = populated_db['video_id']
         
         db.mark_video_watched(video_id)
         
-        # Проверяем
+        # Check
         conn = db.get_connection()
         cursor = conn.cursor()
         cursor.execute('SELECT is_watched, watched_at FROM videos WHERE id = ?', (video_id,))
@@ -180,41 +180,41 @@ class TestVideos:
         assert result['watched_at'] is not None
     
     def test_clear_watched_videos(self, populated_db):
-        """Тест очистки просмотренных видео"""
+        """Test clearing watched videos"""
         db = populated_db['db']
         channel_id = populated_db['channel_id']
         video_id = populated_db['video_id']
         
-        # Отмечаем как просмотренное
+        # Mark as watched
         db.mark_video_watched(video_id)
         
-        # Очищаем
+        # Clear
         db.clear_watched_videos(channel_id)
         
-        # Проверяем, что видео удалено
+        # Check that video is deleted
         videos = db.get_videos_by_personal_channel(channel_id)
         assert len(videos) == 0
     
     def test_videos_filtered_by_active_subscriptions(self, populated_db):
-        """Тест: видео с неактивных подписок не отображаются"""
+        """Test: videos from inactive subscriptions are not displayed"""
         db = populated_db['db']
         channel_id = populated_db['channel_id']
         subscription_id = populated_db['subscription_id']
         
-        # Деактивируем подписку
+        # Deactivate subscription
         db.deactivate_subscription(subscription_id)
         
-        # Видео не должно отображаться
+        # Video should not be displayed
         videos = db.get_videos_by_personal_channel(channel_id)
         assert len(videos) == 0
 
 
 @pytest.mark.unit
 class TestSyncErrors:
-    """Тесты для логирования ошибок"""
+    """Tests for error logging"""
     
     def test_log_sync_error(self, populated_db):
-        """Тест логирования ошибки синхронизации"""
+        """Test logging sync error"""
         db = populated_db['db']
         channel_id = populated_db['channel_id']
         subscription_id = populated_db['subscription_id']
@@ -234,7 +234,7 @@ class TestSyncErrors:
         assert errors[0]['resolved'] == 0
     
     def test_mark_error_resolved(self, populated_db):
-        """Тест отметки ошибки как решённой"""
+        """Test marking error as resolved"""
         db = populated_db['db']
         channel_id = populated_db['channel_id']
         
@@ -251,18 +251,18 @@ class TestSyncErrors:
         
         db.mark_error_resolved(error_id)
         
-        # Проверяем
+        # Check
         errors_after = db.get_unresolved_errors(channel_id)
         assert len(errors_after) == 0
 
 
 @pytest.mark.integration
 class TestDatabaseIntegration:
-    """Интеграционные тесты БД"""
+    """Database integration tests"""
     
     def test_full_workflow(self, db):
-        """Тест полного workflow: канал → подписка → видео → просмотр"""
-        # 1. Создаём канал
+        """Test full workflow: channel → subscription → video → watch"""
+        # 1. Create channel
         channel_id = db.add_personal_channel(
             name='Integration Test',
             youtube_channel_id='UC_integration',
@@ -270,7 +270,7 @@ class TestDatabaseIntegration:
             color='#0000ff'
         )
         
-        # 2. Добавляем подписку
+        # 2. Add subscription
         subscription_id = db.add_subscription(
             personal_channel_id=channel_id,
             youtube_channel_id='UC_sub_integration',
@@ -278,7 +278,7 @@ class TestDatabaseIntegration:
             channel_thumbnail='thumb.jpg'
         )
         
-        # 3. Добавляем видео
+        # 3. Add video
         video_id = db.add_video(
             subscription_id=subscription_id,
             youtube_video_id='video_integration',
@@ -288,15 +288,15 @@ class TestDatabaseIntegration:
             duration='15:00'
         )
         
-        # 4. Проверяем, что всё добавилось
+        # 4. Check that everything was added
         videos = db.get_videos_by_personal_channel(channel_id)
         assert len(videos) == 1
         assert videos[0]['title'] == 'Integration Video'
         
-        # 5. Отмечаем просмотренным
+        # 5. Mark as watched
         db.mark_video_watched(video_id)
         
-        # 6. Проверяем фильтрацию
+        # 6. Check filtering
         unwatched = db.get_videos_by_personal_channel(channel_id, include_watched=False)
         assert len(unwatched) == 0
         

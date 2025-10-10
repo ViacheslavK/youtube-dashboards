@@ -1,4 +1,4 @@
-# YouTube Dashboard Localization
+# SubDeck for YouTube Localization
 
 ## Supported Languages
 
@@ -14,7 +14,7 @@
 from locales import t, set_locale
 
 # Simple translation
-print(t('app.name'))  # "YouTube Dashboard"
+print(t('app.name'))  # "SubDeck for YouTube"
 
 # With parameters
 print(t('channels.count', count=5))  # "Channels: 5"
@@ -39,7 +39,7 @@ File `ru.json`:
 ```json
 {
   "app": {
-    "name": "YouTube Dashboard"
+    "name": "SubDeck for YouTube"
   },
   "common": {
     "yes": "Yes",
@@ -53,7 +53,7 @@ File `ru.json`:
 
 ### Display
 
-- `t('app.name')` → "YouTube Dashboard"
+- `t('app.name')` → "SubDeck for YouTube"
 - `t('common.yes')` → "Yes"
 - `t('channels.count', count=5)` → "Channels: 5"
 
@@ -64,7 +64,7 @@ File `ru.json`:
 ```json
 {
   "app": {
-    "name": "YouTube Dashboard"
+    "name": "SubDeck for YouTube"
   },
   "common": {
     "yes": "...",

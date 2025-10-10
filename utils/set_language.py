@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-Утилита для смены языка интерфейса
+Utility for changing the interface language
 """
 
 import sys
 import os
 import json
 
-# Добавляем корневую папку проекта в путь
+# Add project root folder to path
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(current_dir)
 sys.path.insert(0, project_root)
@@ -16,7 +16,7 @@ from locales import get_available_locales, set_locale, t
 
 
 def load_settings():
-    """Загрузить настройки"""
+    """Load settings"""
     settings_path = os.path.join(project_root, 'config', 'settings.json')
     
     try:
@@ -27,7 +27,7 @@ def load_settings():
 
 
 def save_settings(settings):
-    """Сохранить настройки"""
+    """Save settings"""
     settings_path = os.path.join(project_root, 'config', 'settings.json')
     os.makedirs(os.path.dirname(settings_path), exist_ok=True)
     
@@ -37,16 +37,16 @@ def save_settings(settings):
 
 def main():
     print("=" * 80)
-    print("YouTube Dashboard - Смена языка / Change Language")
+    print("SubDeck for YouTube - Смена языка / Change Language")
     print("=" * 80)
     
-    # Загружаем текущие настройки
+    # Load current settings
     settings = load_settings()
     current_locale = settings.get('locale', 'ru')
     
     print(f"\nТекущий язык / Current language: {current_locale}")
     
-    # Получаем доступные языки
+    # Get available languages
     available = get_available_locales()
     
     print("\nДоступные языки / Available languages:")
@@ -76,7 +76,7 @@ def main():
             settings['locale'] = new_locale
             save_settings(settings)
             
-            # Устанавливаем новый язык
+            # Set new language
             set_locale(new_locale)
             
             print(f"\n✅ {t('common.success')}!")

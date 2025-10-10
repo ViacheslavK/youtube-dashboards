@@ -1,4 +1,4 @@
-// Channel Column Component for YouTube Dashboard
+// Channel Column Component for SubDeck for YouTube
 // Simple HTML escape to safely inject dynamic strings into innerHTML/attributes
 function escapeHtml(str) {
     if (str == null) return '';

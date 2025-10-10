@@ -1,4 +1,4 @@
-// API Client for YouTube Dashboard
+// API Client for SubDeck for YouTube
 class APIClient {
     constructor(baseURL = '/api') {
         this.baseURL = baseURL;

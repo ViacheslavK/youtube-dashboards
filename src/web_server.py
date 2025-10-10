@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Flask Web Server for YouTube Dashboard
+Flask Web Server for SubDeck for YouTube
 """
 
 import os
@@ -88,12 +88,12 @@ if is_development and Swagger:
 # Database
 db = Database()
 
-# Настройка логирования
-# Проверяем, находимся ли мы в тестовой среде
+# Logging setup
+# Check if we are in test environment
 is_testing = 'pytest' in sys.modules or 'PYTEST_CURRENT_TEST' in os.environ
 
 if is_testing:
-    # В тестовой среде используем простой логгер без файлов
+    # In test environment use simple logger without files
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.DEBUG)
     if not logger.handlers:
@@ -102,8 +102,8 @@ if is_testing:
         handler.setFormatter(formatter)
         logger.addHandler(handler)
 else:
-    # В рабочей среде настраиваем полное логирование
-    # Создаём директорию logs если она не существует
+    # In production environment set up full logging
+    # Create logs directory if it doesn't exist
     logs_dir = os.path.join(project_root, 'logs')
     os.makedirs(logs_dir, exist_ok=True)
 
@@ -361,7 +361,7 @@ def clear_watched_videos(channel_id):
 @swag_from({
     'tags': ['Statistics'],
     'summary': 'Get application statistics',
-    'description': 'Retrieve overall statistics for the YouTube dashboard',
+    'description': 'Retrieve overall statistics for the SubDeck for YouTube',
     'responses': {
         200: {
             'description': 'Application statistics',

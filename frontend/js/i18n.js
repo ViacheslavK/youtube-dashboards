@@ -1,4 +1,4 @@
-// Internationalization (i18n) System for YouTube Dashboard
+// Internationalization (i18n) System for SubDeck for YouTube
 class I18n {
     constructor() {
         this.locale = 'en';
